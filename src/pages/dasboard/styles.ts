@@ -18,6 +18,6 @@ export const ContainerItems = styled.div`
 
   @media (max-width: 480px) {
     padding: 1rem;
-    margin-top: 5rem;
+    margin-top: 6rem;
   }
 `;
