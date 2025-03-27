@@ -92,6 +92,15 @@ function RegistroHoras() {
       .toISOString()
       .split("T")[0];
 
+    // ⏳ Delay antes de exibir toast de carregamento
+    const loadingToast = setTimeout(() => {
+      toast.info("Carregando registros...", {
+        toastId: "loading-registros",
+        autoClose: false,
+        closeOnClick: false,
+      });
+    }, 500);
+
     try {
       const { data } = await api.get(
         `/time-records?period=month&startDate=${inicio}&endDate=${fim}&employeeId=${employeeId}`
@@ -103,8 +112,12 @@ function RegistroHoras() {
         totalNegativeHours: data.totalNegativeHours || "00:00:00",
         finalBalance: data.finalBalance || "00:00:00",
       });
+      toast.dismiss("loading-registros");
     } catch {
-      toast.error("Nenhum registro encontrado para o período selecionado");
+      toast.dismiss("loading-registros");
+      toast.warning("Funcionário sem registros para este período.");
+    } finally {
+      clearTimeout(loadingToast);
     }
   }, [employeeId, mesSelecionado]);
 
@@ -134,6 +147,14 @@ function RegistroHoras() {
         value={mesSelecionado}
         onChange={(e) => setMesSelecionado(e.target.value)}
       />
+      {/* Mensagem de ausência de registros */}
+      {registros.length === 0 && employeeId && (
+        <p
+          style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
+        >
+          Nenhum registro encontrado para o período selecionado.
+        </p>
+      )}
 
       {registros.length > 0 && (
         <>

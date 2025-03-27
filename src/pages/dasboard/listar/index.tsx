@@ -25,6 +25,13 @@ function ListarFuncionarios() {
 
   // Função para buscar os funcionários com base no filtro atual
   const carregarFuncionarios = useCallback(async () => {
+    const loadingToast = setTimeout(() => {
+      toast.info("Carregando funcionários...", {
+        toastId: "loading-funcionarios",
+        autoClose: false,
+        closeOnClick: false,
+      });
+    }, 500); // Mostra só se demorar mais de 0.5s
     try {
       let endpoint = "/employees";
 
@@ -42,8 +49,13 @@ function ListarFuncionarios() {
 
       // Atualiza o estado com os funcionários filtrados
       setFuncionarios(apenasFuncionarios);
+
+      toast.dismiss("loading-funcionarios");
     } catch {
+      toast.dismiss("loading-funcionarios");
       toast.error("Erro ao buscar funcionários.");
+    } finally {
+      clearTimeout(loadingToast);
     }
   }, [filtro]);
 
