@@ -51,6 +51,7 @@ interface Registro {
 
 function RegistroHoras() {
   const [employeeId, setEmployeeId] = useState("");
+  const [loading, setLoading] = useState(false);
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [resumo, setResumo] = useState({
@@ -77,6 +78,7 @@ function RegistroHoras() {
   }, []);
 
   const buscarRegistros = useCallback(async () => {
+    setLoading(true); // Ativa o loading
     setRegistros([]);
     setResumo({
       totalPositiveHours: "00:00:00",
@@ -91,15 +93,6 @@ function RegistroHoras() {
     const fim = new Date(Number(ano), Number(mes), 0)
       .toISOString()
       .split("T")[0];
-
-    // ⏳ Delay antes de exibir toast de carregamento
-    const loadingToast = setTimeout(() => {
-      toast.info("Carregando registros...", {
-        toastId: "loading-registros",
-        autoClose: false,
-        closeOnClick: false,
-      });
-    }, 500);
 
     try {
       const { data } = await api.get(
@@ -117,7 +110,7 @@ function RegistroHoras() {
       toast.dismiss("loading-registros");
       toast.warning("Funcionário sem registros para este período.");
     } finally {
-      clearTimeout(loadingToast);
+      setLoading(false); // Finaliza o loading sempre
     }
   }, [employeeId, mesSelecionado]);
 
@@ -148,7 +141,7 @@ function RegistroHoras() {
         onChange={(e) => setMesSelecionado(e.target.value)}
       />
       {/* Mensagem de ausência de registros */}
-      {registros.length === 0 && employeeId && (
+      {!loading && registros.length === 0 && employeeId && (
         <p
           style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
         >
