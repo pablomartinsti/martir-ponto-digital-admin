@@ -34,6 +34,7 @@ export const Select = styled.select`
   background-color: #fff;
   color: #000;
   box-sizing: border-box;
+  cursor: pointer;
 
   &:focus {
     outline: 2px solid #e8b931;
@@ -72,6 +73,13 @@ export const List = styled.div`
   gap: 1rem;
   margin-bottom: 2rem;
 
+  h6 {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    color: #fff;
+    font-size: 1rem;
+  }
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 0.75rem;

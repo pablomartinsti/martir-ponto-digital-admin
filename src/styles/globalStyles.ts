@@ -8,6 +8,7 @@ const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
     font-family: "Roboto", sans-serif;
     text-transform: capitalize;
+    transition: all 0.3s;
   }
 
 

@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import api from "../../../services/api";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Container, Filtros, Grid, Card } from "./styles";
 
@@ -17,8 +16,9 @@ interface Funcionario {
 function ListarFuncionarios() {
   // Estado para armazenar o filtro selecionado (todos, ativos ou inativos)
   const [filtro, setFiltro] = useState<"todos" | "ativos" | "inativos">(
-    "todos"
+    "ativos"
   );
+  const [primeiraBusca, setPrimeiraBusca] = useState(true);
 
   // Estado para armazenar a lista de funcionários retornados da API
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
@@ -31,33 +31,37 @@ function ListarFuncionarios() {
         autoClose: false,
         closeOnClick: false,
       });
-    }, 500); // Mostra só se demorar mais de 0.5s
+    }, 1000);
+
     try {
       let endpoint = "/employees";
 
-      // Define o endpoint de acordo com o filtro selecionado
       if (filtro === "ativos") endpoint = "/employees?filter=active";
       else if (filtro === "inativos") endpoint = "/employees?filter=inactive";
 
-      // Faz a requisição à API
       const response = await api.get(endpoint);
 
-      // Filtra os usuários para exibir apenas os que não são admins
       const apenasFuncionarios = response.data.filter(
         (func: Funcionario) => func.role !== "admin"
       );
 
-      // Atualiza o estado com os funcionários filtrados
       setFuncionarios(apenasFuncionarios);
 
       toast.dismiss("loading-funcionarios");
+
+      // ✅ Mostra toast de sucesso após atualizar a lista
+      if (!primeiraBusca) {
+        toast.success("Funcionários carregados com sucesso!");
+      } else {
+        setPrimeiraBusca(false);
+      }
     } catch {
       toast.dismiss("loading-funcionarios");
       toast.error("Erro ao buscar funcionários.");
     } finally {
       clearTimeout(loadingToast);
     }
-  }, [filtro]);
+  }, [filtro, primeiraBusca]);
 
   // Atualiza a lista sempre que o filtro mudar
   useEffect(() => {
@@ -106,28 +110,51 @@ function ListarFuncionarios() {
 
       {/* Botões de filtro */}
       <Filtros>
-        <button onClick={() => setFiltro("todos")}>Todos</button>
-        <button onClick={() => setFiltro("ativos")}>Ativos</button>
-        <button onClick={() => setFiltro("inativos")}>Inativos</button>
+        <button
+          className={filtro === "todos" ? "ativo" : ""}
+          onClick={() => setFiltro("todos")}
+        >
+          Todos
+        </button>
+        <button
+          className={filtro === "ativos" ? "ativo" : ""}
+          onClick={() => setFiltro("ativos")}
+        >
+          Ativos
+        </button>
+        <button
+          className={filtro === "inativos" ? "ativo" : ""}
+          onClick={() => setFiltro("inativos")}
+        >
+          Inativos
+        </button>
       </Filtros>
 
       {/* Grid com os cards de cada funcionário */}
-      <Grid>
-        {funcionarios.map((func) => (
-          <Card key={func._id}>
-            <h3>{func.name}</h3>
-            <p>
-              <span>CPF:</span> {func.cpf}
-            </p>
-            <p className={func.isActive ? "ativo" : "inativo"}>
-              <span>Status:</span> {func.isActive ? "Ativo" : "Inativo"}
-            </p>
-            <button onClick={() => alternarStatus(func._id, func.isActive)}>
-              {func.isActive ? "Inativar" : "Ativar"}
-            </button>
-          </Card>
-        ))}
-      </Grid>
+      {funcionarios.length === 0 ? (
+        <p
+          style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
+        >
+          Nenhum funcionário encontrado com esse filtro.
+        </p>
+      ) : (
+        <Grid>
+          {funcionarios.map((func) => (
+            <Card key={func._id}>
+              <h3>{func.name}</h3>
+              <p>
+                <span>CPF:</span> {func.cpf}
+              </p>
+              <p className={func.isActive ? "ativo" : "inativo"}>
+                <span>Status:</span> {func.isActive ? "Ativo" : "Inativo"}
+              </p>
+              <button onClick={() => alternarStatus(func._id, func.isActive)}>
+                {func.isActive ? "Inativar" : "Ativar"}
+              </button>
+            </Card>
+          ))}
+        </Grid>
+      )}
 
       {/* Componente que exibe os toasts de feedback */}
       <ToastContainer />

@@ -1,15 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import api from "../../../services/api";
-import { toast } from "react-toastify";
-import {
-  formatarHorario,
-  formatarDataCompleta,
-  formatarParaInputMes,
-} from "../../../utils/date";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+import { ptBR } from "date-fns/locale";
+import { formatarHorario, formatarDataCompleta } from "../../../utils/date";
+
 import {
   Container,
   SelectFuncionario,
-  InputMes,
   CardResumo,
   Saldo,
   Assinatura,
@@ -59,9 +59,7 @@ function RegistroHoras() {
     totalNegativeHours: "00:00:00",
     finalBalance: "00:00:00",
   });
-  const [mesSelecionado, setMesSelecionado] = useState(() =>
-    formatarParaInputMes(new Date())
-  );
+  const [mesSelecionado, setMesSelecionado] = useState<Date | null>(null);
 
   useEffect(() => {
     async function carregarFuncionarios() {
@@ -78,8 +76,10 @@ function RegistroHoras() {
   }, []);
 
   const buscarRegistros = useCallback(async () => {
+    // Mostra o toast de loading imediatamente
     const toastId = toast.loading("Buscando registros de ponto...");
-    setLoading(true);
+
+    setLoading(true); // Estado local (caso esteja usando para exibir spinner)
     setRegistros([]);
     setResumo({
       totalPositiveHours: "00:00:00",
@@ -89,15 +89,19 @@ function RegistroHoras() {
 
     if (!employeeId || !mesSelecionado) {
       toast.dismiss(toastId);
-      setLoading(false);
       return;
     }
 
-    const [ano, mes] = mesSelecionado.split("-");
-    const inicio = `${ano}-${mes}-01`;
-    const fim = new Date(Number(ano), Number(mes), 0)
-      .toISOString()
-      .split("T")[0];
+    if (!mesSelecionado) {
+      toast.dismiss(toastId);
+      return;
+    }
+
+    const ano = mesSelecionado.getFullYear();
+    const mes = mesSelecionado.getMonth() + 1;
+
+    const inicio = `${ano}-${String(mes).padStart(2, "0")}-01`;
+    const fim = new Date(ano, mes, 0).toISOString().split("T")[0];
 
     try {
       const { data } = await api.get(
@@ -117,10 +121,11 @@ function RegistroHoras() {
         isLoading: false,
         autoClose: 3000,
       });
-    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
       toast.update(toastId, {
-        render: "Erro ao buscar registros",
-        type: "error",
+        render: "Funcionário sem registros para este período.",
+        type: "warning",
         isLoading: false,
         autoClose: 3000,
       });
@@ -150,11 +155,17 @@ function RegistroHoras() {
         ))}
       </SelectFuncionario>
 
-      <InputMes
-        type="month"
-        value={mesSelecionado}
-        onChange={(e) => setMesSelecionado(e.target.value)}
+      <DatePicker
+        selected={mesSelecionado}
+        onChange={(date) => setMesSelecionado(date)}
+        dateFormat="MMMM 'de' yyyy"
+        showMonthYearPicker
+        locale={ptBR}
+        placeholderText="Selecione o mês"
+        className="input-mes"
+        maxDate={new Date()} // 🔒 bloqueia meses após o atual
       />
+
       {/* Mensagem de ausência de registros */}
       {!loading && registros.length === 0 && employeeId && (
         <p
@@ -186,7 +197,8 @@ function RegistroHoras() {
                 </strong>
               </h2>
 
-              <h3>{nomesMeses[parseInt(mesSelecionado.split("-")[1]) - 1]}</h3>
+              <h3>{mesSelecionado && nomesMeses[mesSelecionado.getMonth()]}</h3>
+
               {/* Resumo de horas */}
               <h4>
                 Horas Positivas: <strong>{resumo.totalPositiveHours} </strong>{" "}
@@ -285,6 +297,7 @@ function RegistroHoras() {
           </div>
         </>
       )}
+      <ToastContainer />
     </Container>
   );
 }

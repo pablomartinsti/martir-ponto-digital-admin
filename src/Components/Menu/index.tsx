@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarContainer, MenuContent, Hamburger, Overlay } from "./styles";
 import { Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -8,6 +8,8 @@ import Button from "../Button";
 
 function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
@@ -34,16 +36,43 @@ function Sidebar() {
       <SidebarContainer $isOpen={isOpen}>
         <MenuContent>
           <img src={Logo} alt="Logo Ponto Digital" />
-          <Link to="criar-funcionario" onClick={toggleMenu}>
+          <Link
+            to="criar-funcionario"
+            onClick={toggleMenu}
+            className={
+              location.pathname.includes("criar-funcionario") ? "ativo" : ""
+            }
+          >
             Criar Funcionário
           </Link>
-          <Link to="listar-funcionarios" onClick={toggleMenu}>
+
+          <Link
+            to="listar-funcionarios"
+            onClick={toggleMenu}
+            className={
+              location.pathname.includes("listar-funcionarios") ? "ativo" : ""
+            }
+          >
             Listar Funcionários
           </Link>
-          <Link to="gerenciar-escalas" onClick={toggleMenu}>
+
+          <Link
+            to="gerenciar-escalas"
+            onClick={toggleMenu}
+            className={
+              location.pathname.includes("gerenciar-escalas") ? "ativo" : ""
+            }
+          >
             Gerenciar Escalas
           </Link>
-          <Link to="relatorio-de-horas" onClick={toggleMenu}>
+
+          <Link
+            to="relatorio-de-horas"
+            onClick={toggleMenu}
+            className={
+              location.pathname.includes("relatorio-de-horas") ? "ativo" : ""
+            }
+          >
             Relatório de Horas
           </Link>
         </MenuContent>

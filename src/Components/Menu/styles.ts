@@ -72,12 +72,19 @@ export const MenuContent = styled.nav`
   gap: 3rem;
 
   a {
-    color: #fff;
     text-decoration: none;
+    color: #fff;
     font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
 
-    &:hover {
-      color: #f0c040;
+    &.ativo {
+      background-color: #e8b931;
+      font-weight: bold;
+    }
+    &:active {
+      color: #e8b931;
     }
   }
 `;

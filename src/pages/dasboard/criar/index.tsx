@@ -1,8 +1,7 @@
 import { useState } from "react";
 import api from "../../../services/api";
 import { z, ZodError } from "zod";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Input from "../../../Components/Input";
 import Button from "../../../Components/Button";

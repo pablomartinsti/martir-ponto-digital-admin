@@ -17,6 +17,12 @@ export const StyledButton = styled.button`
   &:hover {
     border: 1px solid #fff;
     cursor: pointer;
+    opacity: 0.8;
+  }
+  &:active {
+    border: 1px solid #fff;
+    cursor: pointer;
+    opacity: 1;
   }
 
   &:disabled {

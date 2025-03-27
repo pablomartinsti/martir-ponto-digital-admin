@@ -13,16 +13,20 @@ export const Filtros = styled.div`
 
   button {
     padding: 0.5rem 1rem;
-    background-color: #011d4c;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
+    border: 1px solid #ccc;
+    background: transparent;
     cursor: pointer;
-    transition: 0.2s;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s;
 
+    &.ativo {
+      background: #011d4c;
+      color: white;
+      border-color: white;
+    }
     &:hover {
-      background-color: #033175;
+      border-color: #011d4c;
     }
   }
 `;
@@ -69,9 +73,12 @@ export const Card = styled.div`
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s;
 
     &:hover {
-      background-color: #033175;
+      background-color: #fff;
+      color: black;
+      border: 1px solid black;
     }
   }
 `;

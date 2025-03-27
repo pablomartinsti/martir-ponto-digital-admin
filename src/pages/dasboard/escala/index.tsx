@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import api from "../../../services/api";
 import Button from "../../../Components/Button";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   Container,
@@ -94,14 +93,33 @@ function GerenciarEscala() {
   // Busca escala do funcionário no modo visualização
   useEffect(() => {
     if (modo === "ver" && employeeId) {
+      // Resetar a escala antes de buscar
+      setEscala(null);
+
       async function buscarEscala() {
+        const toastId = toast.loading("Carregando escala...");
+
         try {
           const { data } = await api.get(`/work-schedules/${employeeId}`);
           setEscala(data.customDays);
+
+          toast.update(toastId, {
+            render: "Escala carregada com sucesso!",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
         } catch {
-          setEscala([]); // Não encontrou escala
+          setEscala([]); // Marca como sem escala
+          toast.update(toastId, {
+            render: "Erro ao carregar escala.",
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
         }
       }
+
       buscarEscala();
     }
   }, [modo, employeeId]);
@@ -202,14 +220,8 @@ function GerenciarEscala() {
       {/* Exibição da escala do funcionário */}
       {employeeId && modo === "ver" && (
         <List>
-          {escala === null ? (
-            // Se ainda estiver carregando
-            <Text>Carregando escala...</Text>
-          ) : escala.length === 0 ? (
-            // Se não houver escala cadastrada
-            <Text>
-              Este funcionário ainda não possui uma escala configurada.
-            </Text>
+          {escala === null ? null : escala.length === 0 ? (
+            <h6>Este funcionário ainda não possui uma escala configurada.</h6>
           ) : (
             // Exibe os dias com as horas configuradas
             escala.map((dia) => {
