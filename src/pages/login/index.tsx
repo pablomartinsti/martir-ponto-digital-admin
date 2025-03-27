@@ -15,6 +15,8 @@ function Login() {
   // Estados para armazenar os valores dos inputs e erros de validação
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [erros, setErros] = useState<{ cpf?: string; senha?: string }>({});
 
   // Hook do React Router para navegação
@@ -22,6 +24,10 @@ function Login() {
 
   // Função chamada ao clicar no botão de login
   const handleLogin = async () => {
+    setLoading(true);
+    const timeoutToast = setTimeout(() => {
+      toast.info("Conectando com o servidor, aguarde...");
+    }, 3000); // mostra toast se demorar mais de 3s
     try {
       // Limpa os erros anteriores
       setErros({});
@@ -34,6 +40,7 @@ function Login() {
         cpf: dadosValidados.cpf.replace(/\D/g, ""), // Remove caracteres não numéricos do CPF
         password: dadosValidados.senha,
       });
+      toast.info("Conectando com o servidor, aguarde...");
 
       const { token, user } = response.data;
 
@@ -52,6 +59,7 @@ function Login() {
         return;
       }
 
+      toast.dismiss(); // esconde o "aguarde..."
       // Exibe mensagem de sucesso
       toast.success("Login realizado com sucesso!");
 
@@ -60,7 +68,9 @@ function Login() {
         navigate("/dashboard/criar-funcionario");
       }, 2000);
     } catch (error) {
-      // Erros de validação com Zod
+      toast.dismiss();
+      toast.error("Erro ao fazer login. Verifique suas credenciais.");
+
       if (error instanceof ZodError) {
         const fieldErrors: { cpf?: string; senha?: string } = {};
         error.errors.forEach((err) => {
@@ -68,12 +78,10 @@ function Login() {
           if (err.path.includes("senha")) fieldErrors.senha = err.message;
         });
         setErros(fieldErrors);
-      } else {
-        // Outros erros (ex: erro de autenticação)
-        setErros({
-          cpf: "Erro ao fazer login. Verifique suas credenciais.",
-        });
       }
+    } finally {
+      clearTimeout(timeoutToast);
+      setLoading(false);
     }
   };
 
@@ -104,7 +112,9 @@ function Login() {
         />
 
         {/* Botão de login */}
-        <Button onClick={handleLogin}>Entrar</Button>
+        <Button onClick={handleLogin} disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
+        </Button>
       </ContainerItems>
 
       {/* Componente que exibe os toasts (mensagens de feedback) */}
