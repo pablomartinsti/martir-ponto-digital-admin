@@ -40,6 +40,7 @@ function Login() {
       // Armazena token e informações do usuário no localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       // Verifica se o usuário é um admin
       if (user.role !== "admin") {
