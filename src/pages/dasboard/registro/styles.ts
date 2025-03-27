@@ -3,10 +3,6 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   padding: 0 20px;
-
-  @media (max-width: 480px) {
-    padding-top: 80px;
-  }
 `;
 
 export const FiltroWrapper = styled.div`
