@@ -5,12 +5,12 @@ import api from "../services/api";
 interface User {
   name: string;
   role: "admin" | "employee";
-  // outros campos que quiser
 }
 
 interface AuthContextData {
   user: User | null;
   token: string | null;
+  loading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
 }
@@ -20,6 +20,7 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // <-- novo estado
 
   useEffect(() => {
     const tokenStorage = localStorage.getItem("token");
@@ -30,6 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(JSON.parse(userStorage));
       api.defaults.headers.common["Authorization"] = `Bearer ${tokenStorage}`;
     }
+
+    setLoading(false); // <-- fim da restauração
   }, []);
 
   function login(token: string, user: User) {
@@ -49,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

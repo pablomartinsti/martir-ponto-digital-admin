@@ -3,17 +3,30 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   padding: 0 20px;
+`;
 
-  input {
-    padding: 8px 12px;
+export const FiltroWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 1rem 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-mes {
+    padding: 8px;
     border-radius: 5px;
-    border: 1px solid #000;
     font-size: 1rem;
-    cursor: pointer;
-    margin: 16px;
+    border: 1px solid black;
+    width: 100%;
+    max-width: 250px;
+
     &:hover {
       border: 1px solid #e8b931;
-      cursor: pointer;
     }
   }
 `;
@@ -28,25 +41,6 @@ export const SelectFuncionario = styled.select`
   cursor: pointer;
   border: 1px solid black;
 
-  &:hover {
-    border: 1px solid #e8b931;
-    cursor: pointer;
-  }
-  @media (max-width: 1024px) {
-    width: 180px;
-  }
-`;
-
-export const InputMes = styled.input`
-  padding: 8px;
-  margin: 16px;
-  border-radius: 5px;
-  font-size: 1rem;
-  border: 1px solid black;
-
-  @media (max-width: 1024px) {
-    width: 180px;
-  }
   &:hover {
     border: 1px solid #e8b931;
     cursor: pointer;

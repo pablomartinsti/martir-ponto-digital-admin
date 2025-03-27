@@ -15,6 +15,7 @@ import {
   Assinatura,
   TableDesktop,
   TableMobile,
+  FiltroWrapper,
 } from "./styles";
 import Button from "../../../Components/Button";
 
@@ -143,28 +144,30 @@ function RegistroHoras() {
   return (
     <Container>
       {/* Campos de filtro (na tela) */}
-      <SelectFuncionario
-        value={employeeId}
-        onChange={(e) => setEmployeeId(e.target.value)}
-      >
-        <option value="">Selecione um funcionário</option>
-        {funcionarios.map((f) => (
-          <option key={f._id} value={f._id}>
-            {f.name}
-          </option>
-        ))}
-      </SelectFuncionario>
+      <FiltroWrapper>
+        <SelectFuncionario
+          value={employeeId}
+          onChange={(e) => setEmployeeId(e.target.value)}
+        >
+          <option value="">Selecione um funcionário</option>
+          {funcionarios.map((f) => (
+            <option key={f._id} value={f._id}>
+              {f.name}
+            </option>
+          ))}
+        </SelectFuncionario>
 
-      <DatePicker
-        selected={mesSelecionado}
-        onChange={(date) => setMesSelecionado(date)}
-        dateFormat="MMMM 'de' yyyy"
-        showMonthYearPicker
-        locale={ptBR}
-        placeholderText="Selecione o mês"
-        className="input-mes"
-        maxDate={new Date()} // 🔒 bloqueia meses após o atual
-      />
+        <DatePicker
+          selected={mesSelecionado}
+          onChange={(date) => setMesSelecionado(date)}
+          dateFormat="MMMM 'de' yyyy"
+          showMonthYearPicker
+          locale={ptBR}
+          placeholderText="Selecione o mês"
+          className="input-mes"
+          maxDate={new Date()}
+        />
+      </FiltroWrapper>
 
       {/* Mensagem de ausência de registros */}
       {!loading && registros.length === 0 && employeeId && (

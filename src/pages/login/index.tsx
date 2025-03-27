@@ -41,6 +41,7 @@ function Login() {
       toast.info("Conectando com o servidor, aguarde...");
 
       const { token, user } = response.data;
+      console.log("✅ Login bem-sucedido:", { token, user });
 
       // ⛔️ Verifica se não é admin antes de logar
       if (user.role !== "admin") {
