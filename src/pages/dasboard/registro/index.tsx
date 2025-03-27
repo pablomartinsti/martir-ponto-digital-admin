@@ -78,7 +78,8 @@ function RegistroHoras() {
   }, []);
 
   const buscarRegistros = useCallback(async () => {
-    setLoading(true); // Ativa o loading
+    const toastId = toast.loading("Buscando registros de ponto...");
+    setLoading(true);
     setRegistros([]);
     setResumo({
       totalPositiveHours: "00:00:00",
@@ -86,7 +87,11 @@ function RegistroHoras() {
       finalBalance: "00:00:00",
     });
 
-    if (!employeeId || !mesSelecionado) return;
+    if (!employeeId || !mesSelecionado) {
+      toast.dismiss(toastId);
+      setLoading(false);
+      return;
+    }
 
     const [ano, mes] = mesSelecionado.split("-");
     const inicio = `${ano}-${mes}-01`;
@@ -105,12 +110,22 @@ function RegistroHoras() {
         totalNegativeHours: data.totalNegativeHours || "00:00:00",
         finalBalance: data.finalBalance || "00:00:00",
       });
-      toast.dismiss("loading-registros");
+
+      toast.update(toastId, {
+        render: "Registros carregados com sucesso!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
     } catch {
-      toast.dismiss("loading-registros");
-      toast.warning("Funcionário sem registros para este período.");
+      toast.update(toastId, {
+        render: "Erro ao buscar registros",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
     } finally {
-      setLoading(false); // Finaliza o loading sempre
+      setLoading(false);
     }
   }, [employeeId, mesSelecionado]);
 
