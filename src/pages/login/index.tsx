@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { loginSchema } from "../../validations/loginSchema";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../../contexts/AuthContext";
 import api from "../../services/api";
 import Logo from "../../assets/Logo-Ponto-Digital.svg";
 import Input from "../../Components/Input";
@@ -15,11 +16,10 @@ function Login() {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [erros, setErros] = useState<{ cpf?: string; senha?: string }>({});
-
-  // Hook do React Router para navegação
   const navigate = useNavigate();
+
+  const { login, logout } = useAuth(); // ✅ Agora está no lugar certo
 
   // Função chamada ao clicar no botão de login
   const handleLogin = async () => {
@@ -28,41 +28,32 @@ function Login() {
       toast.info("Conectando com o servidor, aguarde...");
     }, 3000); // mostra toast se demorar mais de 3s
     try {
-      // Limpa os erros anteriores
+      const cpfLimpo = cpf.replace(/\D/g, ""); // remove tudo que não for número
+
       setErros({});
+      const dadosValidados = loginSchema.parse({ cpf: cpfLimpo, senha });
 
-      // Validação dos dados usando Zod
-      const dadosValidados = loginSchema.parse({ cpf, senha });
-
-      // Requisição para a API de login
       const response = await api.post("/login", {
-        cpf: dadosValidados.cpf.replace(/\D/g, ""), // Remove caracteres não numéricos do CPF
+        cpf: dadosValidados.cpf.replace(/\D/g, ""),
         password: dadosValidados.senha,
       });
+
       toast.info("Conectando com o servidor, aguarde...");
 
       const { token, user } = response.data;
 
-      // Armazena token e informações do usuário no localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      // Verifica se o usuário é um admin
+      // ⛔️ Verifica se não é admin antes de logar
       if (user.role !== "admin") {
         setErros({ cpf: "Apenas administradores podem acessar este painel" });
-
-        // Remove os dados armazenados se não for admin
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        logout();
         return;
       }
 
-      toast.dismiss(); // esconde o "aguarde..."
-      // Exibe mensagem de sucesso
+      login(token, user); // ✅ tudo certo aqui
+
+      toast.dismiss();
       toast.success("Login realizado com sucesso!");
 
-      // Redireciona para o painel após 2 segundos
       setTimeout(() => {
         navigate("/dashboard/criar-funcionario");
       }, 2000);

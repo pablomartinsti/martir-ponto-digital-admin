@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { SidebarContainer, MenuContent, Hamburger, Overlay } from "./styles";
 import { Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -9,13 +10,12 @@ import Button from "../Button";
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const [isOpen, setIsOpen] = useState(false);
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+    logout(); // ✅ usa o contexto para limpar tudo
+    navigate("/"); // 🔁 redireciona para a tela de login
   };
 
   const toggleMenu = () => {
