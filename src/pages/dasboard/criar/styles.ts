@@ -6,6 +6,9 @@ export const Container = styled.div`
   background: #011d4c;
   padding: 1rem;
   border-radius: 8px;
+  @media (max-width: 480px) {
+    padding-top: 80px;
+  }
 `;
 
 export const Title = styled.h1`

@@ -11,6 +11,9 @@ export const Container = styled.div`
     text-align: center;
     margin: 3rem 0;
   }
+  @media (max-width: 480px) {
+    padding-top: 80px;
+  }
 `;
 
 export const Title = styled.h1`
