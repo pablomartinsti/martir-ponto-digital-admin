@@ -20,7 +20,7 @@ export const StyledLabel = styled.label`
 
 // Campo de input
 export const StyledInput = styled.input`
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   border-radius: 0.3125rem;
   border: none;
   font-size: 1rem;

@@ -3,11 +3,11 @@ import { Group, StyledLabel, StyledInput, ErrorText } from "./styles";
 
 interface Props {
   label: string;
-  type?: string;
-  value: string;
+  type?: "text" | "password" | "number"; // Tipos de input
+  value: string | number; // Aceitar tanto string quanto number
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
-  error?: string; // <-- isso aqui resolve o problema
+  error?: string; // Exibição de erro, se houver
 }
 
 function InputGroup({
@@ -23,7 +23,7 @@ function InputGroup({
       <StyledLabel>{label}</StyledLabel>
       <StyledInput
         type={type}
-        value={value}
+        value={value} // Valor agora pode ser string ou number
         onChange={onChange}
         placeholder={placeholder}
       />

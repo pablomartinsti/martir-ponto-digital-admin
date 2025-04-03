@@ -4,26 +4,50 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Container, Filtros, Grid, Card } from "./styles";
 
-// Interface para tipar os dados dos funcionários
+// Interfaces
 interface Funcionario {
   _id: string;
   name: string;
   cpf: string;
   isActive: boolean;
-  role: "admin" | "employee";
+  role: "admin" | "sub_admin" | "employee";
+}
+
+interface Empresa {
+  _id: string;
+  name: string;
+  cnpj: string;
 }
 
 function ListarFuncionarios() {
-  // Estado para armazenar o filtro selecionado (todos, ativos ou inativos)
   const [filtro, setFiltro] = useState<"todos" | "ativos" | "inativos">(
-    "ativos"
+    "todos"
   );
   const [primeiraBusca, setPrimeiraBusca] = useState(true);
-
-  // Estado para armazenar a lista de funcionários retornados da API
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [cnpjSelecionado, setCnpjSelecionado] = useState("");
 
-  // Função para buscar os funcionários com base no filtro atual
+  // Apenas leitura do usuário salvo no localStorage
+  const [user] = useState(() => {
+    const userStorage = localStorage.getItem("user");
+    return userStorage ? JSON.parse(userStorage) : null;
+  });
+
+  // Carrega as empresas para o select (se for admin)
+  useEffect(() => {
+    if (user?.role === "admin") {
+      api
+        .get("/companies")
+        .then((res) => {
+          console.log("Empresas retornadas:", res.data); // 👈 AQUI
+          setEmpresas(res.data);
+        })
+        .catch(() => toast.error("Erro ao carregar empresas."));
+    }
+  }, [user]);
+
+  // Carrega os funcionários de acordo com o filtro e empresa
   const carregarFuncionarios = useCallback(async () => {
     const loadingToast = setTimeout(() => {
       toast.info("Carregando funcionários...", {
@@ -31,15 +55,20 @@ function ListarFuncionarios() {
         autoClose: false,
         closeOnClick: false,
       });
-    }, 1000);
+    }, 500);
 
     try {
-      let endpoint = "/employees";
+      const url = "/employees";
+      const params = new URLSearchParams();
 
-      if (filtro === "ativos") endpoint = "/employees?filter=active";
-      else if (filtro === "inativos") endpoint = "/employees?filter=inactive";
+      if (filtro === "ativos") params.append("filter", "active");
+      else if (filtro === "inativos") params.append("filter", "inactive");
 
-      const response = await api.get(endpoint);
+      if (user?.role === "admin" && cnpjSelecionado) {
+        params.append("cnpj", cnpjSelecionado);
+      }
+
+      const response = await api.get(`${url}?${params.toString()}`);
 
       const apenasFuncionarios = response.data.filter(
         (func: Funcionario) => func.role !== "admin"
@@ -48,31 +77,26 @@ function ListarFuncionarios() {
       setFuncionarios(apenasFuncionarios);
 
       toast.dismiss("loading-funcionarios");
-
-      // ✅ Mostra toast de sucesso após atualizar a lista
-      if (!primeiraBusca) {
-        toast.success("Funcionários carregados com sucesso!");
-      } else {
-        setPrimeiraBusca(false);
-      }
+      if (!primeiraBusca) toast.success("Funcionários carregados com sucesso!");
+      else setPrimeiraBusca(false);
     } catch {
       toast.dismiss("loading-funcionarios");
       toast.error("Erro ao buscar funcionários.");
     } finally {
       clearTimeout(loadingToast);
     }
-  }, [filtro, primeiraBusca]);
+  }, [filtro, cnpjSelecionado, primeiraBusca, user]);
 
-  // Atualiza a lista sempre que o filtro mudar
+  // Só busca funcionários se tiver empresa selecionada
   useEffect(() => {
+    if (user?.role === "admin" && !cnpjSelecionado) return;
     carregarFuncionarios();
-  }, [carregarFuncionarios]);
+  }, [carregarFuncionarios, cnpjSelecionado, user?.role]);
 
-  // Função para ativar ou inativar um funcionário
+  // Alternar status do funcionário
   const alternarStatus = async (_id: string, isAtivo: boolean) => {
     const acao = isAtivo ? "inativar" : "ativar";
 
-    // Confirmação do usuário
     const confirmado = window.confirm(
       `Tem certeza que deseja ${acao} este funcionário?`
     );
@@ -80,11 +104,8 @@ function ListarFuncionarios() {
     if (!confirmado) return;
 
     try {
-      // Envia atualização de status para a API com feedback via toast
       await toast.promise(
-        api.patch(`/${_id}/status`, {
-          isActive: !isAtivo,
-        }),
+        api.patch(`/employees/${_id}/status`, { isActive: !isAtivo }), // ← aqui corrigido
         {
           pending: `${
             acao === "inativar" ? "Inativando" : "Ativando"
@@ -96,42 +117,66 @@ function ListarFuncionarios() {
         }
       );
 
-      // Atualiza a lista de funcionários após a alteração
       carregarFuncionarios();
     } catch {
-      toast.error("Erro ao buscar funcionários.");
+      toast.error("Erro ao atualizar funcionário.");
     }
   };
 
   return (
     <Container>
-      {/* Título da página */}
       <h1>Funcionários</h1>
 
-      {/* Botões de filtro */}
+      {/* Select de empresa (somente para admin) */}
+      {user?.role === "admin" && (
+        <div style={{ marginBottom: "1rem" }}>
+          <label style={{ marginRight: "0.5rem" }}>Filtrar por empresa:</label>
+          <select
+            value={cnpjSelecionado}
+            onChange={(e) => setCnpjSelecionado(e.target.value)}
+            disabled={empresas.length === 0}
+          >
+            <option value="">Selecione uma empresa</option>
+            {empresas.map((empresa) => (
+              <option key={empresa._id} value={empresa.cnpj}>
+                {empresa.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <Filtros>
         <button
           className={filtro === "todos" ? "ativo" : ""}
           onClick={() => setFiltro("todos")}
+          disabled={user?.role === "admin" && !cnpjSelecionado}
         >
           Todos
         </button>
         <button
           className={filtro === "ativos" ? "ativo" : ""}
           onClick={() => setFiltro("ativos")}
+          disabled={user?.role === "admin" && !cnpjSelecionado}
         >
           Ativos
         </button>
         <button
           className={filtro === "inativos" ? "ativo" : ""}
           onClick={() => setFiltro("inativos")}
+          disabled={user?.role === "admin" && !cnpjSelecionado}
         >
           Inativos
         </button>
       </Filtros>
 
-      {/* Grid com os cards de cada funcionário */}
-      {funcionarios.length === 0 ? (
+      {!cnpjSelecionado && user?.role === "admin" ? (
+        <p
+          style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
+        >
+          Selecione uma empresa para visualizar os funcionários.
+        </p>
+      ) : funcionarios.length === 0 ? (
         <p
           style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
         >
@@ -141,6 +186,17 @@ function ListarFuncionarios() {
         <Grid>
           {funcionarios.map((func) => (
             <Card key={func._id}>
+              {func.role === "sub_admin" && (
+                <p
+                  style={{
+                    fontWeight: "bold",
+                    color: "#008000",
+                    marginBottom: "0.3rem",
+                  }}
+                >
+                  👤 Administrador da Empresa
+                </p>
+              )}
               <h3>{func.name}</h3>
               <p>
                 <span>CPF:</span> {func.cpf}
@@ -148,15 +204,17 @@ function ListarFuncionarios() {
               <p className={func.isActive ? "ativo" : "inativo"}>
                 <span>Status:</span> {func.isActive ? "Ativo" : "Inativo"}
               </p>
-              <button onClick={() => alternarStatus(func._id, func.isActive)}>
-                {func.isActive ? "Inativar" : "Ativar"}
-              </button>
+              {/* Oculta o botão se o sub_admin estiver vendo ele mesmo */}
+              {!(user?.role === "sub_admin" && user.id === func._id) && (
+                <button onClick={() => alternarStatus(func._id, func.isActive)}>
+                  {func.isActive ? "Inativar" : "Ativar"}
+                </button>
+              )}
             </Card>
           ))}
         </Grid>
       )}
 
-      {/* Componente que exibe os toasts de feedback */}
       <ToastContainer />
     </Container>
   );

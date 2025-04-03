@@ -4,7 +4,8 @@ import api from "../services/api";
 
 interface User {
   name: string;
-  role: "admin" | "employee";
+  role: "admin" | "employee" | "sub_admin";
+  companyId?: string;
 }
 
 interface AuthContextData {

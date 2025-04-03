@@ -4,7 +4,8 @@ import Dashboard from "../pages/dasboard";
 import { ProtectedRoute } from "./protectedRoute";
 
 import ListarFuncionarios from "../pages/dasboard/listar";
-import CriarFuncionario from "../pages/dasboard/criar";
+import CriarFuncionario from "../pages/dasboard/criar/funcionario";
+import CriarSubAdmin from "../pages/dasboard/criar/empresa";
 import GereciarEscala from "../pages/dasboard/escala";
 import RelatorioHoras from "../pages/dasboard/registro";
 
@@ -21,6 +22,7 @@ export function AppRoutes() {
         }
       >
         <Route path="criar-funcionario" element={<CriarFuncionario />} />
+        <Route path="criar-empresa" element={<CriarSubAdmin />} />
         <Route path="listar-funcionarios" element={<ListarFuncionarios />} />
         <Route path="gerenciar-escalas" element={<GereciarEscala />} />
         <Route path="relatorio-de-horas" element={<RelatorioHoras />} />

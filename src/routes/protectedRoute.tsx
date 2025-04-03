@@ -11,7 +11,7 @@ export function ProtectedRoute({ children }: { children: JSX.Element }) {
     );
   }
 
-  if (!token || !user || user.role !== "admin") {
+  if (!token || !user || (user.role !== "admin" && user.role !== "sub_admin")) {
     console.warn("Redirecionando por falta de token ou user admin");
     return <Navigate to="/" replace />;
   }

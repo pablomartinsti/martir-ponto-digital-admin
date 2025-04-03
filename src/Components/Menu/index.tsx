@@ -11,7 +11,7 @@ function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout(); // ✅ usa o contexto para limpar tudo
@@ -37,13 +37,16 @@ function Sidebar() {
         <MenuContent>
           <img src={Logo} alt="Logo Ponto Digital" />
           <Link
-            to="criar-funcionario"
+            to={user?.role === "admin" ? "criar-empresa" : "criar-funcionario"}
             onClick={toggleMenu}
             className={
-              location.pathname.includes("criar-funcionario") ? "ativo" : ""
+              location.pathname.includes("criar-funcionario") ||
+              location.pathname.includes("criar-empresa")
+                ? "ativo"
+                : ""
             }
           >
-            Criar Funcionário
+            {user?.role === "admin" ? "Criar Empresa" : "Criar Funcionário"}
           </Link>
 
           <Link
@@ -56,25 +59,31 @@ function Sidebar() {
             Listar Funcionários
           </Link>
 
-          <Link
-            to="gerenciar-escalas"
-            onClick={toggleMenu}
-            className={
-              location.pathname.includes("gerenciar-escalas") ? "ativo" : ""
-            }
-          >
-            Gerenciar Escalas
-          </Link>
+          {user?.role !== "admin" && (
+            <>
+              <Link
+                to="gerenciar-escalas"
+                onClick={toggleMenu}
+                className={
+                  location.pathname.includes("gerenciar-escalas") ? "ativo" : ""
+                }
+              >
+                Gerenciar Escalas
+              </Link>
 
-          <Link
-            to="relatorio-de-horas"
-            onClick={toggleMenu}
-            className={
-              location.pathname.includes("relatorio-de-horas") ? "ativo" : ""
-            }
-          >
-            Relatório de Horas
-          </Link>
+              <Link
+                to="relatorio-de-horas"
+                onClick={toggleMenu}
+                className={
+                  location.pathname.includes("relatorio-de-horas")
+                    ? "ativo"
+                    : ""
+                }
+              >
+                Relatório de Horas
+              </Link>
+            </>
+          )}
         </MenuContent>
         <Button onClick={handleLogout}>Sair</Button>
       </SidebarContainer>

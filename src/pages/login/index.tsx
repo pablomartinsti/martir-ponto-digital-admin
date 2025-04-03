@@ -44,7 +44,7 @@ function Login() {
       console.log("✅ Login bem-sucedido:", { token, user });
 
       // ⛔️ Verifica se não é admin antes de logar
-      if (user.role !== "admin") {
+      if (user.role !== "admin" && user.role !== "sub_admin") {
         setErros({ cpf: "Apenas administradores podem acessar este painel" });
         logout();
         return;
@@ -56,8 +56,14 @@ function Login() {
       toast.success("Login realizado com sucesso!");
 
       setTimeout(() => {
-        navigate("/dashboard/criar-funcionario");
-      }, 2000);
+        if (user.role === "admin") {
+          // Redireciona o admin para a página de criação de empresa
+          navigate("/dashboard/criar-empresa");
+        } else if (user.role === "sub_admin") {
+          // Redireciona o sub-admin para a página de criação de funcionário
+          navigate("/dashboard/criar-funcionario");
+        }
+      }, 1000);
     } catch (error) {
       toast.dismiss();
       toast.error("Erro ao fazer login. Verifique suas credenciais.");

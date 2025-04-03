@@ -9,7 +9,7 @@ function App() {
       <AppRoutes />
       <ToastContainer
         position="top-right" // 👈 essa é a posição padrão (pode forçar)
-        autoClose={1000}
+        autoClose={500}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
