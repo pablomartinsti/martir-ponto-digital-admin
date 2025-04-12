@@ -18,8 +18,8 @@ import {
   FiltroWrapper,
 } from "./styles";
 import Button from "../../../Components/Button";
+import ModalJustificativa from "../../../Components/ModalAbsence/ModalJustificativa";
 
-// Nomes dos meses para exibição
 const nomesMeses = [
   "Janeiro",
   "Fevereiro",
@@ -34,6 +34,7 @@ const nomesMeses = [
   "Novembro",
   "Dezembro",
 ];
+
 interface Funcionario {
   _id: string;
   name: string;
@@ -41,13 +42,16 @@ interface Funcionario {
 }
 
 interface Registro {
-  _id: string;
-  clockIn: string;
+  _id?: string;
+  date: string;
+  clockIn?: string;
   lunchStart?: string;
   lunchEnd?: string;
   clockOut?: string;
   workedHours: string;
   balance: string;
+  status: string;
+  justified?: boolean; // 👈 novo campo
 }
 
 function RegistroHoras() {
@@ -55,6 +59,10 @@ function RegistroHoras() {
   const [loading, setLoading] = useState(false);
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [registros, setRegistros] = useState<Registro[]>([]);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [registroSelecionado, setRegistroSelecionado] =
+    useState<Registro | null>(null);
+
   const [resumo, setResumo] = useState({
     totalPositiveHours: "00:00:00",
     totalNegativeHours: "00:00:00",
@@ -66,9 +74,7 @@ function RegistroHoras() {
     async function carregarFuncionarios() {
       try {
         const { data } = await api.get("/employees?filter=active");
-        setFuncionarios(
-          (data as Funcionario[]).filter((f) => f.role !== "admin")
-        );
+        setFuncionarios(data.filter((f: Funcionario) => f.role !== "admin"));
       } catch {
         toast.error("Erro ao carregar funcionários");
       }
@@ -77,10 +83,8 @@ function RegistroHoras() {
   }, []);
 
   const buscarRegistros = useCallback(async () => {
-    // Mostra o toast de loading imediatamente
     const toastId = toast.loading("Buscando registros de ponto...");
-
-    setLoading(true); // Estado local (caso esteja usando para exibir spinner)
+    setLoading(true);
     setRegistros([]);
     setResumo({
       totalPositiveHours: "00:00:00",
@@ -89,11 +93,6 @@ function RegistroHoras() {
     });
 
     if (!employeeId || !mesSelecionado) {
-      toast.dismiss(toastId);
-      return;
-    }
-
-    if (!mesSelecionado) {
       toast.dismiss(toastId);
       return;
     }
@@ -109,7 +108,7 @@ function RegistroHoras() {
         `/time-records?period=month&startDate=${inicio}&endDate=${fim}&employeeId=${employeeId}`
       );
 
-      setRegistros(data.results?.[0]?.records || []);
+      setRegistros(data.records || []);
       setResumo({
         totalPositiveHours: data.totalPositiveHours || "00:00:00",
         totalNegativeHours: data.totalNegativeHours || "00:00:00",
@@ -140,10 +139,24 @@ function RegistroHoras() {
   }, [buscarRegistros]);
 
   const formatarData = (dataIso: string) => formatarDataCompleta(dataIso);
+  const abrirJustificativaModal = (registro: Registro) => {
+    setRegistroSelecionado(registro);
+    setModalAberto(true);
+  };
+
+  const fecharModal = () => {
+    setModalAberto(false);
+    setRegistroSelecionado(null);
+  };
+
+  const aoJustificar = () => {
+    buscarRegistros(); // atualiza os dados
+  };
+
+  const podeJustificar = ["Jornada incompleta"];
 
   return (
     <Container>
-      {/* Campos de filtro (na tela) */}
       <FiltroWrapper>
         <SelectFuncionario
           value={employeeId}
@@ -169,7 +182,6 @@ function RegistroHoras() {
         />
       </FiltroWrapper>
 
-      {/* Mensagem de ausência de registros */}
       {!loading && registros.length === 0 && employeeId && (
         <p
           style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
@@ -180,7 +192,6 @@ function RegistroHoras() {
 
       {registros.length > 0 && (
         <>
-          {/* Botão de impressão */}
           <Button
             style={{ width: "200px", margin: "1rem 0" }}
             onClick={() => window.print()}
@@ -188,54 +199,68 @@ function RegistroHoras() {
             Imprimir Registro
           </Button>
 
-          {/* Conteúdo que será impresso */}
           <div id="print-area">
             <h1>Relatório Mensal das Horas</h1>
             <CardResumo className="card-resumo">
-              {/* Informações básicas */}
               <h2>
                 Funcionário:{" "}
                 <strong>
                   {funcionarios.find((f) => f._id === employeeId)?.name}
                 </strong>
               </h2>
-
               <h3>{mesSelecionado && nomesMeses[mesSelecionado.getMonth()]}</h3>
-
-              {/* Resumo de horas */}
               <h4>
-                Horas Positivas: <strong>{resumo.totalPositiveHours} </strong>{" "}
+                Horas Positivas: <strong>{resumo.totalPositiveHours}</strong>
               </h4>
               <h4>
-                Horas Negativas: <strong>{resumo.totalNegativeHours} </strong>{" "}
+                Horas Negativas: <strong>{resumo.totalNegativeHours}</strong>
               </h4>
               <Saldo negativo={resumo.finalBalance.startsWith("-")}>
-                Saldo: <strong>{resumo.finalBalance} </strong>
+                Saldo: <strong>{resumo.finalBalance}</strong>
               </Saldo>
             </CardResumo>
 
-            {/* Tabela compacta com os registros */}
-            {/* Tabela para telas grandes */}
             <TableDesktop>
               <thead>
                 <tr>
-                  <th style={{ width: 300 }}>Data</th>
+                  <th style={{ width: 170 }}>Data</th>
                   <th>Entrada</th>
                   <th>Almoço</th>
                   <th>Retorno</th>
                   <th>Saída</th>
                   <th>Horas</th>
                   <th>Saldo</th>
+                  <th className="col-status">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {registros.map((registro) => (
-                  <tr key={registro._id}>
-                    <td>{formatarData(registro.clockIn)}</td>
-                    <td>{formatarHorario(registro.clockIn)}</td>
-                    <td>{formatarHorario(registro.lunchStart)}</td>
-                    <td>{formatarHorario(registro.lunchEnd)}</td>
-                    <td>{formatarHorario(registro.clockOut)}</td>
+                  <tr key={registro.date}>
+                    <td>
+                      {registro.clockIn
+                        ? formatarData(registro.clockIn)
+                        : formatarData(registro.date)}
+                    </td>
+                    <td>
+                      {registro.clockIn
+                        ? formatarHorario(registro.clockIn)
+                        : "-"}
+                    </td>
+                    <td>
+                      {registro.lunchStart
+                        ? formatarHorario(registro.lunchStart)
+                        : "-"}
+                    </td>
+                    <td>
+                      {registro.lunchEnd
+                        ? formatarHorario(registro.lunchEnd)
+                        : "-"}
+                    </td>
+                    <td>
+                      {registro.clockOut
+                        ? formatarHorario(registro.clockOut)
+                        : "-"}
+                    </td>
                     <td>{registro.workedHours}</td>
                     <td
                       className={
@@ -246,32 +271,59 @@ function RegistroHoras() {
                     >
                       {registro.balance}
                     </td>
+                    <td className="col-status">
+                      {registro.status}
+                      {podeJustificar.includes(registro.status.toLowerCase()) &&
+                        !registro.justified && (
+                          <button
+                            onClick={() => abrirJustificativaModal(registro)}
+                            style={{
+                              marginLeft: "8px",
+                              padding: "0px ",
+                              fontSize: "10px",
+                            }}
+                          >
+                            Justificar
+                          </button>
+                        )}
+
+                      {registro.justified && <span>✅</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </TableDesktop>
 
-            {/* Cards para mobile */}
             <TableMobile>
               {registros.map((registro) => (
-                <div className="card" key={registro._id}>
+                <div className="card" key={registro.date}>
                   <p>
-                    <strong>Data:</strong> {formatarData(registro.clockIn)}
+                    <strong>Data:</strong>{" "}
+                    {registro.clockIn
+                      ? formatarData(registro.clockIn)
+                      : formatarData(registro.date)}
                   </p>
                   <p>
                     <strong>Entrada:</strong>{" "}
-                    {formatarHorario(registro.clockIn)}
+                    {registro.clockIn ? formatarHorario(registro.clockIn) : "-"}
                   </p>
                   <p>
-                    <strong>Almoço:</strong>{" "}
-                    {formatarHorario(registro.lunchStart)}
+                    <strong>Início do Almoço:</strong>{" "}
+                    {registro.lunchStart
+                      ? formatarHorario(registro.lunchStart)
+                      : "-"}
                   </p>
                   <p>
-                    <strong>Retorno:</strong>{" "}
-                    {formatarHorario(registro.lunchEnd)}
+                    <strong>Fim do Almoço:</strong>{" "}
+                    {registro.lunchEnd
+                      ? formatarHorario(registro.lunchEnd)
+                      : "-"}
                   </p>
                   <p>
-                    <strong>Saída:</strong> {formatarHorario(registro.clockOut)}
+                    <strong>Saída:</strong>{" "}
+                    {registro.clockOut
+                      ? formatarHorario(registro.clockOut)
+                      : "-"}
                   </p>
                   <p>
                     <strong>Horas:</strong> {registro.workedHours}
@@ -285,11 +337,13 @@ function RegistroHoras() {
                   >
                     <strong>Saldo:</strong> {registro.balance}
                   </p>
+                  <p className="col-status">
+                    <strong>Status:</strong> {registro.status}
+                  </p>
                 </div>
               ))}
             </TableMobile>
 
-            {/* Linha para assinatura */}
             <Assinatura className="assinatura">
               <p>
                 ______________________________________________________________
@@ -301,6 +355,15 @@ function RegistroHoras() {
         </>
       )}
       <ToastContainer />
+      {registroSelecionado && (
+        <ModalJustificativa
+          isOpen={modalAberto}
+          onClose={fecharModal}
+          employeeId={employeeId}
+          date={registroSelecionado.date}
+          onJustified={aoJustificar}
+        />
+      )}
     </Container>
   );
 }

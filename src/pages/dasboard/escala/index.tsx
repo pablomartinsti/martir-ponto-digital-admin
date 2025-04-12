@@ -13,11 +13,10 @@ import {
   Label,
   InputStyled,
   Select,
-  Text,
   List,
+  CheckboxLabel,
 } from "./styles";
 
-// Lista unificada com dados dos dias da semana
 const diasDaSemana = [
   { key: "Monday", short: "Seg", full: "Segunda" },
   { key: "Tuesday", short: "Ter", full: "Terça" },
@@ -28,52 +27,44 @@ const diasDaSemana = [
   { key: "Sunday", short: "Dom", full: "Domingo" },
 ];
 
-// Converte string "HH:MM" para número decimal (ex: "08:30" -> 8.5)
-function converterHoraParaDecimal(hora: string): number {
-  const [h, m] = hora.split(":").map(Number);
-  if (isNaN(h) || isNaN(m)) return 0;
-  return h + m / 60;
-}
-
-// Converte número decimal para string "HH:MM" (ex: 8.5 -> "08:30")
-function formatarDecimalParaHora(decimal: number): string {
-  const horas = Math.floor(decimal);
-  const minutos = Math.round((decimal - horas) * 60);
-  return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
-    2,
-    "0"
-  )}`;
-}
-
 function GerenciarEscala() {
-  // Armazena horas digitadas por dia da semana
-  const [horas, setHoras] = useState<{ [key: string]: string }>({});
-  // ID do funcionário selecionado
   const [employeeId, setEmployeeId] = useState("");
-  // Escala retornada da API (modo visualização)
+  const [escalaCompleta, setEscalaCompleta] = useState<{
+    [key: string]: {
+      start: string;
+      end: string;
+      hasLunch: boolean;
+      expectedLunchBreak: string; // <- novo formato HH:mm
+      isDayOff: boolean;
+    };
+  }>({});
+
   const [escala, setEscala] = useState<
-    { day: string; dailyHours: number }[] | null
+    | {
+        day: string;
+        start: string;
+        end: string;
+        hasLunch: boolean;
+        expectedLunchBreakMinutes: number;
+        isDayOff: boolean;
+      }[]
+    | null
   >(null);
-  // Modo atual: ver ou editar
   const [modo, setModo] = useState<"ver" | "editar" | "">("");
-  // Lista de funcionários ativos (não admins)
   const [funcionarios, setFuncionarios] = useState<
     { _id: string; name: string }[]
   >([]);
 
   const location = useLocation();
 
-  // Identifica o funcionário selecionado pelo ID
   const funcionarioSelecionado = funcionarios.find((f) => f._id === employeeId);
 
-  // Reseta os estados ao mudar de rota
   useEffect(() => {
     setEmployeeId("");
     setModo("");
-    setHoras({});
+    setEscalaCompleta({});
   }, [location.key]);
 
-  // Carrega funcionários ativos ao montar o componente
   useEffect(() => {
     async function carregarFuncionarios() {
       try {
@@ -90,19 +81,14 @@ function GerenciarEscala() {
     carregarFuncionarios();
   }, []);
 
-  // Busca escala do funcionário no modo visualização
   useEffect(() => {
     if (modo === "ver" && employeeId) {
-      // Resetar a escala antes de buscar
       setEscala(null);
-
       async function buscarEscala() {
         const toastId = toast.loading("Carregando escala...");
-
         try {
           const { data } = await api.get(`/work-schedules/${employeeId}`);
           setEscala(data.customDays);
-
           toast.update(toastId, {
             render: "Escala carregada com sucesso!",
             type: "success",
@@ -110,7 +96,7 @@ function GerenciarEscala() {
             autoClose: 3000,
           });
         } catch {
-          setEscala([]); // Marca como sem escala
+          setEscala([]);
           toast.update(toastId, {
             render: "Erro ao carregar escala.",
             type: "error",
@@ -124,41 +110,54 @@ function GerenciarEscala() {
     }
   }, [modo, employeeId]);
 
-  // Atualiza as horas de um determinado dia
-  const handleChange = (day: string, value: string) => {
-    setHoras((prev) => ({
+  const handleChangeEscala = (
+    dia: string,
+    campo: string,
+    valor: string | boolean | number
+  ) => {
+    setEscalaCompleta((prev) => ({
       ...prev,
-      [day]: value,
+      [dia]: {
+        ...prev[dia],
+        [campo]: valor,
+      },
     }));
   };
 
-  // Envia a escala preenchida para a API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Verifica se todos os dias foram preenchidos
-    const todosPreenchidos = diasDaSemana.every((dia) => horas[dia.key]);
+    const todosPreenchidos = diasDaSemana.every((dia) => {
+      const d = escalaCompleta[dia.key];
+      return d && d.start && d.end;
+    });
+
     if (!todosPreenchidos) {
-      toast.error("Preencha todos os dias da escala antes de salvar.");
+      toast.error("Preencha todos os campos antes de salvar.");
       return;
     }
 
-    // Valida se todas as horas estão no formato HH:MM
-    const algumInvalido = Object.values(horas).some(
-      (hora) => !/^\d{1,2}:\d{2}$/.test(hora)
-    );
-    if (algumInvalido) {
-      toast.error("Formato inválido. Use HH:MM (ex: 08:00)");
-      return;
-    }
+    const convertTimeToMinutes = (time: string) => {
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
+    };
 
-    // Monta o payload com os dados da escala
     const payload = {
       employeeId,
-      customDays: diasDaSemana.map((dia) => ({
-        day: dia.key,
-        dailyHours: converterHoraParaDecimal(horas[dia.key] || "0:00"),
-      })),
+      customDays: diasDaSemana.map((dia) => {
+        const diaData = escalaCompleta[dia.key] || {};
+
+        return {
+          day: dia.key.toLowerCase(),
+          start: diaData.start || "00:00",
+          end: diaData.end || "00:00",
+          hasLunch: !!diaData.hasLunch,
+          expectedLunchBreakMinutes: convertTimeToMinutes(
+            diaData.expectedLunchBreak || "00:00"
+          ),
+          isDayOff: !!diaData.isDayOff,
+        };
+      }),
     };
 
     try {
@@ -174,13 +173,10 @@ function GerenciarEscala() {
 
   return (
     <Container>
-      {/* Título da página */}
       <Title>Gerenciar Escala</Title>
 
-      {/* Nome do funcionário selecionado */}
       {funcionarioSelecionado && <h2>{funcionarioSelecionado.name}</h2>}
 
-      {/* Seleção de funcionário */}
       {!employeeId && (
         <Form>
           <Label>Selecione um funcionário</Label>
@@ -200,7 +196,6 @@ function GerenciarEscala() {
         </Form>
       )}
 
-      {/* Seleção do modo: visualizar ou editar */}
       {employeeId && !modo && (
         <div>
           <Label>O que deseja fazer?</Label>
@@ -217,57 +212,151 @@ function GerenciarEscala() {
         </div>
       )}
 
-      {/* Exibição da escala do funcionário */}
       {employeeId && modo === "ver" && (
         <List>
           {escala === null ? null : escala.length === 0 ? (
             <h6>Este funcionário ainda não possui uma escala configurada.</h6>
           ) : (
-            // Exibe os dias com as horas configuradas
             escala.map((dia) => {
               const diaInfo = diasDaSemana.find(
                 (d) => d.key.toLowerCase() === dia.day.toLowerCase()
               );
 
               return (
-                <Text key={dia.day}>
-                  {diaInfo?.full || dia.day}{" "}
-                  <span>{formatarDecimalParaHora(dia.dailyHours)}</span>
-                </Text>
+                <div
+                  key={dia.day}
+                  style={{
+                    backgroundColor: "#012869",
+                    padding: "1rem",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    minWidth: "300px",
+                    flex: "1 1 100px",
+                  }}
+                >
+                  <h4 style={{ color: "#e8b931", marginBottom: "0.5rem" }}>
+                    {diaInfo?.full || dia.day}
+                  </h4>
+                  {dia.isDayOff ? (
+                    <p>
+                      <strong>Folga</strong>
+                    </p>
+                  ) : (
+                    <>
+                      <p>
+                        <strong>Jornada:</strong> {dia.start} às {dia.end}
+                      </p>
+                      <p>
+                        <strong>Almoço:</strong>{" "}
+                        {dia.hasLunch
+                          ? `${dia.expectedLunchBreakMinutes} min`
+                          : "Não"}
+                      </p>
+                    </>
+                  )}
+                </div>
               );
             })
           )}
         </List>
       )}
 
-      {/* Formulário para criar ou editar escala */}
       {employeeId && modo === "editar" && (
         <Form onSubmit={handleSubmit}>
           <Grid>
             {diasDaSemana.map((dia) => (
               <InputBox key={dia.key}>
-                {/* Rótulo com nome abreviado do dia */}
-                <Label>{dia.short}</Label>
+                <Label>{dia.full}</Label>
 
-                {/* Input do tipo "time" para definir a jornada */}
+                <Label>Início da Jornada</Label>
                 <InputStyled
                   type="time"
-                  value={horas[dia.key] || ""}
-                  onChange={(e) => handleChange(dia.key, e.target.value)}
-                  placeholder="HH:MM"
+                  value={escalaCompleta[dia.key]?.start || ""}
+                  onChange={(e) =>
+                    handleChangeEscala(dia.key, "start", e.target.value)
+                  }
+                  disabled={escalaCompleta[dia.key]?.isDayOff}
                 />
+
+                <Label>Fim da Jornada</Label>
+                <InputStyled
+                  type="time"
+                  value={escalaCompleta[dia.key]?.end || ""}
+                  onChange={(e) =>
+                    handleChangeEscala(dia.key, "end", e.target.value)
+                  }
+                  disabled={escalaCompleta[dia.key]?.isDayOff}
+                />
+
+                <CheckboxLabel>
+                  <input
+                    type="checkbox"
+                    checked={escalaCompleta[dia.key]?.hasLunch || false}
+                    onChange={(e) =>
+                      handleChangeEscala(dia.key, "hasLunch", e.target.checked)
+                    }
+                    disabled={escalaCompleta[dia.key]?.isDayOff}
+                  />
+                  Tem intervalo para almoço?
+                </CheckboxLabel>
+
+                <Label>Intervalo de Almoço</Label>
+                <InputStyled
+                  type="time"
+                  step="60"
+                  value={escalaCompleta[dia.key]?.expectedLunchBreak || "00:00"}
+                  onChange={(e) =>
+                    handleChangeEscala(
+                      dia.key,
+                      "expectedLunchBreak",
+                      e.target.value
+                    )
+                  }
+                  disabled={escalaCompleta[dia.key]?.isDayOff}
+                />
+
+                <CheckboxLabel>
+                  <input
+                    type="checkbox"
+                    checked={escalaCompleta[dia.key]?.isDayOff || false}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      handleChangeEscala(dia.key, "isDayOff", isChecked);
+
+                      if (isChecked) {
+                        handleChangeEscala(dia.key, "start", "00:00");
+                        handleChangeEscala(dia.key, "end", "00:00");
+                        handleChangeEscala(
+                          dia.key,
+                          "expectedLunchBreakMinutes",
+                          0
+                        );
+                        handleChangeEscala(dia.key, "hasLunch", false);
+                      }
+                    }}
+                  />
+                  Este dia é uma <strong>folga</strong>
+                </CheckboxLabel>
+
+                <small
+                  style={{
+                    fontSize: "0.7rem",
+                    color: "#ccc",
+                    textAlign: "center",
+                  }}
+                >
+                  Se for folga, os horários devem ser "00:00"
+                </small>
               </InputBox>
             ))}
           </Grid>
 
-          {/* Botão para salvar a escala */}
           <Button style={{ minWidth: "100%" }} type="submit">
             Salvar Escala
           </Button>
         </Form>
       )}
 
-      {/* Componente que renderiza os toasts de feedback */}
       <ToastContainer />
     </Container>
   );

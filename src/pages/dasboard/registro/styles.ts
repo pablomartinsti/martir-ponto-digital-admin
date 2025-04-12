@@ -56,7 +56,7 @@ export const CardResumo = styled.div`
   margin-bottom: 16px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.3rem;
   margin: 2rem 0;
 
   strong {
@@ -65,7 +65,7 @@ export const CardResumo = styled.div`
 `;
 
 export const Saldo = styled.span<{ negativo?: boolean }>`
-  color: ${(props) => (props.negativo ? "red" : "#00ff00")};
+  color: ${(props) => (props.negativo ? "red" : "green")};
   font-weight: bold;
 `;
 
@@ -82,10 +82,14 @@ export const Table = styled.table`
 
   th,
   td {
-    padding: 8px;
+    padding: 1px;
     border: 1px solid #ccc;
     text-align: center;
     vertical-align: middle;
+    font-size: 14px;
+  }
+  .col-status {
+    width: 170px;
   }
 
   th:first-child,
@@ -130,10 +134,9 @@ export const TableMobile = styled.div`
   .card {
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 12px;
     background-color: #fff;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    font-size: 14px;
+    font-size: 18px;
 
     p {
       margin: 4px 0;
@@ -156,7 +159,7 @@ export const TableMobile = styled.div`
 `;
 
 export const Assinatura = styled.div`
-  margin-top: 3rem;
+  margin-top: 4rem;
   text-align: center;
   font-size: 16px;
   word-wrap: break-word;

@@ -1,7 +1,6 @@
 import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
-
   * {
     margin: 0;
     padding: 0;
@@ -11,98 +10,109 @@ const GlobalStyle = createGlobalStyle`
     transition: all 0.3s;
   }
 
-
   /* === Estilos para impressão === */
   @media print {
-  html, body {
-    margin: 0;
-    padding: 0;
-    font-family: "Roboto", sans-serif;
-    font-size: 12pt;
-    color: black;
-    background: white;
-  }
+    body {
+      margin: 0;
+      padding: 0;
+      font-size: 7pt;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-  #print-area {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 1cm;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    background: white !important;
-  }
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
 
-  h1, .titulo-print {
-    font-size: 50pt;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 0.5cm;
-  }
+    html, body {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
 
-  .card-resumo {
-    font-size: 25pt;
-    padding: 1rem;
-    border: 1px solid #000;
-    border-radius: 8px;
-    background-color: #f8f8f8;
-  }
+    #print-area {
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
 
-  .card-resumo p {
-    margin: 4pt 0;
-  }
+    h1 {
+      font-size: 14pt;
+      text-align: center;
+      margin-bottom: 4pt;
+    }
+    .card-resumo {
+      border: 1pt solid #000;
+      padding: 1mm;
+      font-size: 9pt;
+     
+      h2, h3, h4,span {
+        font-size: 10pt;
+      }
+    }
 
-  .card-resumo strong {
-    font-weight: bold;
-  }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 4pt;
+      
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    
-  }
+    th, td {
+      border: 1pt solid #000;
+      text-align: center;
+    }
 
-  th, td {
-    border: 1px solid #000;
-    padding: 6pt 4pt;
-    text-align: center;
-    font-size: 20pt;
-  }
-  p{
-    text-align: center;
-    font-size: 25pt;
-  }
+    .saldo-negativo {
+      color: red !important;
+    }
 
-  td.saldo-negativo {
-    color: red;
-    font-weight: bold;
-  }
+    .saldo-positivo {
+      color: green !important;
+    }
 
-  td.saldo-positivo {
-    color: green;
-    font-weight: bold;
-  }
-  
-  button,
-  nav,
-  aside,
-  header,
-  footer {
-    display: none !important;
-  }
+    .assinatura {
+      margin-top: 8mm;
+      font-size: 9pt;
+      text-align: center;
+    }
 
-  a::after {
-    content: "";
+    .col-status {
+      display: none !important;
+    }
+
+    /* Oculta elementos da interface na impressão */
+    button,
+    .no-print,
+    nav,
+    aside,
+    select,
+    input,
+    .input-mes,
+    header,
+    footer,
+    .logo,
+    .card-resumo
+    .page-title,
+    .react-datepicker-wrapper,
+    .react-datepicker__input-container,
+    .Toastify__toast-container,
+    .Toastify__toast,
+    .Toastify__toast-body,
+    .Toastify__close-button {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Remove URLs automáticas nos links ao imprimir */
+    a[href]:after {
+      content: none !important;
+    }
   }
-}
-@page {
-  size: A4 portrait; /* retrato */
-  margin: 1.5cm;
-}
-
-
 `;
 
 export default GlobalStyle;

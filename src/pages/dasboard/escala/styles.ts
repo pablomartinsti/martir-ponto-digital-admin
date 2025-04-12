@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-  max-width: 800px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 1.5rem;
   background: #011d4c;
@@ -43,12 +43,37 @@ export const Select = styled.select`
 
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 2rem;
 `;
 
-export const InputBox = styled.div``;
+export const InputBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  background-color: #012869;
+  border-radius: 12px;
+  padding: 1rem;
+  gap: 0.6rem;
+  color: #fff;
+  min-width: 140px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  align-items: stretch;
+  text-align: left;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+    color: #e8b931;
+  }
+
+  small {
+    font-size: 0.7rem;
+    color: #ccc;
+    margin-top: 0.4rem;
+  }
+`;
 
 export const Label = styled.label`
   color: #e8b931;
@@ -58,20 +83,36 @@ export const Label = styled.label`
   margin-bottom: 0.3rem;
   text-align: center;
 `;
+export const CheckboxLabel = styled.label`
+  font-size: 0.85rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+`;
 
 export const InputStyled = styled.input`
   width: 100%;
-  height: 2rem;
-  border-radius: 5px;
-  padding-left: 6px;
-  border: none;
+  height: 2.2rem;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
   text-align: center;
+  border: none;
+  background-color: #fff;
+  color: #000;
+
+  &:focus {
+    outline: 2px solid #e8b931;
+  }
 `;
+
 export const List = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 2rem;
+  justify-content: center;
 
   h6 {
     display: flex;
@@ -80,9 +121,10 @@ export const List = styled.div`
     color: #fff;
     font-size: 1rem;
   }
+
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: center;
   }
 `;
 
