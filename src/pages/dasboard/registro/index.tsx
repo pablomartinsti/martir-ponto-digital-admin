@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 import { formatarHorario, formatarDataCompleta } from "../../../utils/date";
+import { isHoje } from "../../../utils/date";
 
 import {
   Container,
@@ -74,7 +75,7 @@ function RegistroHoras() {
     async function carregarFuncionarios() {
       try {
         const { data } = await api.get("/employees?filter=active");
-        setFuncionarios(data.filter((f: Funcionario) => f.role !== "admin"));
+        setFuncionarios(data.filter((f: Funcionario) => f.role === "employee"));
       } catch {
         toast.error("Erro ao carregar funcionários");
       }
@@ -153,7 +154,16 @@ function RegistroHoras() {
     buscarRegistros(); // atualiza os dados
   };
 
-  const podeJustificar = ["Jornada incompleta"];
+  const podeJustificar = [
+    "jornada incompleta",
+    "horas faltando",
+    "falta justificada",
+    "férias",
+    "atestado médico",
+    "falta injustificada",
+    "folga concedida",
+    "feriado",
+  ];
 
   return (
     <Container>
@@ -274,20 +284,18 @@ function RegistroHoras() {
                     <td className="col-status">
                       {registro.status}
                       {podeJustificar.includes(registro.status.toLowerCase()) &&
-                        !registro.justified && (
-                          <button
+                        !isHoje(registro.date) && (
+                          <Button
+                            style={{ height: 20, margin: "5px 0" }}
                             onClick={() => abrirJustificativaModal(registro)}
-                            style={{
-                              marginLeft: "8px",
-                              padding: "0px ",
-                              fontSize: "10px",
-                            }}
                           >
-                            Justificar
-                          </button>
+                            {registro.justified
+                              ? "Editar justificativa"
+                              : "Justificar"}
+                          </Button>
                         )}
 
-                      {registro.justified && <span>✅</span>}
+                      {registro.justified}
                     </td>
                   </tr>
                 ))}

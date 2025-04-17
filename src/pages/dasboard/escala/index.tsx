@@ -70,7 +70,7 @@ function GerenciarEscala() {
       try {
         const { data } = await api.get("/employees?filter=active");
         const apenasFuncionarios = data.filter(
-          (func: { role: string }) => func.role !== "admin"
+          (func: { role: string }) => func.role === "employee"
         );
         setFuncionarios(apenasFuncionarios);
       } catch {
