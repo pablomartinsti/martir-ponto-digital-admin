@@ -59,6 +59,16 @@ function Sidebar() {
             Listar Funcionários
           </Link>
 
+          <Link
+            to="Relatorio-Logs"
+            onClick={toggleMenu}
+            className={
+              location.pathname.includes("Relatorio-Logs") ? "ativo" : ""
+            }
+          >
+            Relatório de Logs
+          </Link>
+
           {user?.role !== "admin" && (
             <>
               <Link
