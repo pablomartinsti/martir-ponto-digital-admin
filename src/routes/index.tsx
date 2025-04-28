@@ -8,7 +8,7 @@ import CriarFuncionario from "../pages/dashboard/criar/funcionario";
 import CriarSubAdmin from "../pages/dashboard/criar/empresa";
 import GereciarEscala from "../pages/dashboard/escala";
 import RelatorioHoras from "../pages/dashboard/registro";
-import RelatorioLogs from "../pages/dashboard/logs";
+import RelatorioLogs from "../pages/dashboard/relatorioLogs";
 
 export function AppRoutes() {
   return (
