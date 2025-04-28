@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../services/api";
+import { toast } from "react-toastify";
+import { AxiosError } from "axios";
 
 interface Log {
   _id: string;
@@ -27,6 +29,10 @@ export default function LogsPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
+  // Campos para EXCLUSÃO de logs
+  const [deleteMonth, setDeleteMonth] = useState("");
+  const [deleteYear, setDeleteYear] = useState("");
+
   useEffect(() => {
     async function fetchCompanies() {
       try {
@@ -46,7 +52,6 @@ export default function LogsPage() {
         const params: Record<string, string> = {};
 
         if (selectedCompanyId) params.companyId = selectedCompanyId;
-
         if (selectedDate) {
           params.startDate = selectedDate;
           params.endDate = selectedDate;
@@ -62,10 +67,43 @@ export default function LogsPage() {
     fetchLogs();
   }, [selectedCompanyId, selectedDate]);
 
+  async function handleDeleteLogs() {
+    if (!deleteMonth || !deleteYear) {
+      toast.error("Preencha o mês e o ano para excluir.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir os logs do mês ${deleteMonth}/${deleteYear}?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await api.delete("/delete-event", {
+        params: {
+          month: deleteMonth,
+          year: deleteYear,
+        },
+      });
+
+      toast.success(response.data.message || "Logs excluídos com sucesso.");
+
+      // Atualizar a listagem depois de excluir
+      setLogs([]);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ error: string }>;
+
+      console.error(err);
+
+      toast.error(err.response?.data?.error || "Erro ao excluir logs.");
+    }
+  }
+
   return (
     <div style={{ padding: "2rem" }}>
       <h2 style={{ marginBottom: "1rem" }}>Relatório de Erros</h2>
 
+      {/* FILTROS NORMAIS */}
       <div style={{ display: "flex", gap: "2rem", marginBottom: "1rem" }}>
         <div>
           <label htmlFor="empresa">Filtrar por empresa:</label>
@@ -96,6 +134,47 @@ export default function LogsPage() {
         </div>
       </div>
 
+      {/* CAMPOS PARA EXCLUSÃO DE LOGS */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
+        <div>
+          <label>Mês para excluir:</label>
+          <input
+            type="number"
+            min="1"
+            max="12"
+            value={deleteMonth}
+            onChange={(e) => setDeleteMonth(e.target.value)}
+            style={{ marginLeft: "0.5rem", padding: "0.5rem", width: "100px" }}
+          />
+        </div>
+
+        <div>
+          <label>Ano para excluir:</label>
+          <input
+            type="number"
+            min="2000"
+            max="2100"
+            value={deleteYear}
+            onChange={(e) => setDeleteYear(e.target.value)}
+            style={{ marginLeft: "0.5rem", padding: "0.5rem", width: "100px" }}
+          />
+        </div>
+
+        <button
+          onClick={handleDeleteLogs}
+          style={{
+            padding: "0.5rem 1rem",
+            backgroundColor: "red",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+          }}
+        >
+          Excluir Logs
+        </button>
+      </div>
+
+      {/* TABELA DE LOGS */}
       <div style={{ overflowX: "auto" }}>
         <table
           style={{
