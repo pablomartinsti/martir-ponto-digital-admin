@@ -1,14 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "../pages/login";
-import Dashboard from "../pages/dasboard";
+import Dashboard from "../pages/dashboard";
 import { ProtectedRoute } from "./protectedRoute";
 
-import ListarFuncionarios from "../pages/dasboard/listar";
-import RelatorioLogs from "../pages/dasboard/logs";
-import CriarFuncionario from "../pages/dasboard/criar/funcionario";
-import CriarSubAdmin from "../pages/dasboard/criar/empresa";
-import GereciarEscala from "../pages/dasboard/escala";
-import RelatorioHoras from "../pages/dasboard/registro";
+import ListarFuncionarios from "../pages/dashboard/listar";
+import RelatorioLogs from "../pages/dashboard/logs";
+import CriarFuncionario from "../pages/dashboard/criar/funcionario";
+import CriarSubAdmin from "../pages/dashboard/criar/empresa";
+import GereciarEscala from "../pages/dashboard/escala";
+import RelatorioHoras from "../pages/dashboard/registro";
 
 export function AppRoutes() {
   return (
