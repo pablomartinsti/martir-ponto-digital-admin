@@ -3,6 +3,12 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   padding: 0 20px;
+
+  .text {
+    margin-top: 2rem;
+    text-align: center;
+    font-weight: bold;
+  }
 `;
 
 export const FiltroWrapper = styled.div`
@@ -80,6 +86,24 @@ export const Table = styled.table`
     background-color: #f5f5f5;
   }
 
+  .data {
+    width: 120px;
+  }
+  .th {
+    width: 70px;
+  }
+  .descricao {
+    width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    @media print {
+      max-width: 120px; /* mais compacto para impressão */
+    }
+  }
+  #ajuste {
+    width: 100px;
+  }
   th,
   td {
     padding: 1px;
@@ -87,14 +111,6 @@ export const Table = styled.table`
     text-align: center;
     vertical-align: middle;
     font-size: 14px;
-  }
-  .col-status {
-    width: 170px;
-  }
-
-  th:first-child,
-  td:first-child {
-    text-align: left;
   }
 
   td.saldo-negativo {
@@ -107,13 +123,23 @@ export const Table = styled.table`
     font-weight: bold;
   }
 `;
+
 export const TableDesktop = styled(Table)`
-  @media screen and (max-width: 1024px) {
-    display: none;
+  .descricao-limitada {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  @media print {
-    display: table;
+  .descricao-limitada span {
+    display: inline-block;
+    max-width: 100%;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  @media screen and (max-width: 1024px) {
+    display: none;
   }
 `;
 
@@ -125,10 +151,6 @@ export const TableMobile = styled.div`
     flex-direction: column;
     gap: 1rem;
     margin-top: 1rem;
-  }
-
-  @media print {
-    display: none; /* Esconde os cards na impressão */
   }
 
   .card {

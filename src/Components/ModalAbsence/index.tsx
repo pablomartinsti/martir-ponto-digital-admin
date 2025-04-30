@@ -1,7 +1,7 @@
 import { useState } from "react";
-import styled from "styled-components";
 import api from "../../services/api";
 import { toast } from "react-toastify";
+import { Actions, ModalBox, Overlay, Select, Textarea } from "./styles";
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +19,7 @@ export default function ModalJustificativa({
   onJustified,
 }: Props) {
   const [motivo, setMotivo] = useState("");
+  const [descricao, setDescricao] = useState("");
 
   const enviarJustificativa = async () => {
     if (!motivo) {
@@ -31,6 +32,7 @@ export default function ModalJustificativa({
         employeeId,
         date,
         type: motivo,
+        description: descricao,
       });
       toast.success("Justificativa registrada com sucesso!");
       onJustified();
@@ -62,9 +64,23 @@ export default function ModalJustificativa({
           <option value="justified">Falta justificada</option>
           <option value="day_off">Folga</option>
           <option value="holiday">Feriado</option>
-          <option value="unjustified">Falta Injustificada</option>
+          <option value="unjustified">Falta</option>
         </Select>
-
+        <Textarea
+          placeholder="Descreva detalhes da ausência (máx. 20 caracteres)"
+          value={descricao}
+          onChange={(e) => {
+            if (e.target.value.length <= 20) {
+              setDescricao(e.target.value);
+            }
+          }}
+          maxLength={20}
+        />
+        <p
+          style={{ textAlign: "right", fontSize: "0.75rem", marginTop: "4px" }}
+        >
+          {descricao.length}/20
+        </p>
         <Actions>
           <button onClick={onClose}>Cancelar</button>
           <button onClick={enviarJustificativa}>Salvar</button>
@@ -73,36 +89,3 @@ export default function ModalJustificativa({
     </Overlay>
   );
 }
-
-const Overlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ModalBox = styled.div`
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 320px;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 8px;
-  margin-top: 1rem;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1.5rem;
-
-  button {
-    padding: 6px 12px;
-    cursor: pointer;
-  }
-`;

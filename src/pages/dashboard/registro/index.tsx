@@ -19,7 +19,7 @@ import {
   FiltroWrapper,
 } from "./styles";
 import Button from "../../../Components/Button";
-import ModalJustificativa from "../../../Components/ModalAbsence/ModalJustificativa";
+import ModalJustificativa from "../../../Components/ModalAbsence/";
 
 const nomesMeses = [
   "Janeiro",
@@ -52,7 +52,8 @@ interface Registro {
   workedHours: string;
   balance: string;
   status: string;
-  justified?: boolean; // 👈 novo campo
+  justified?: boolean;
+  description?: string;
 }
 
 function RegistroHoras() {
@@ -193,9 +194,7 @@ function RegistroHoras() {
       </FiltroWrapper>
 
       {!loading && registros.length === 0 && employeeId && (
-        <p
-          style={{ marginTop: "2rem", textAlign: "center", fontWeight: "bold" }}
-        >
+        <p className="text">
           Nenhum registro encontrado para o período selecionado.
         </p>
       )}
@@ -209,7 +208,7 @@ function RegistroHoras() {
             Imprimir Registro
           </Button>
 
-          <div id="print-area">
+          <div>
             <h1>Relatório Mensal das Horas</h1>
             <CardResumo className="card-resumo">
               <h2>
@@ -233,14 +232,20 @@ function RegistroHoras() {
             <TableDesktop>
               <thead>
                 <tr>
-                  <th style={{ width: 170 }}>Data</th>
-                  <th>Entrada</th>
-                  <th>Almoço</th>
-                  <th>Retorno</th>
-                  <th>Saída</th>
-                  <th>Horas</th>
-                  <th>Saldo</th>
-                  <th className="col-status">Status</th>
+                  <th className="data">Data</th>
+                  <th className="th">Entrada</th>
+                  <th className="th">Almoço</th>
+                  <th className="th">Retorno</th>
+                  <th className="th">Saída</th>
+                  <th className="th">Horas</th>
+                  <th className="th">Saldo</th>
+                  <th id="ajuste" className="col-status">
+                    Status
+                  </th>
+                  <th className="descricao">Descrição</th>
+                  <th id="ajuste" className="col-status">
+                    Ajuste
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -282,11 +287,26 @@ function RegistroHoras() {
                       {registro.balance}
                     </td>
                     <td className="col-status">
-                      {registro.status}
+                      <div>
+                        <span> {registro.status}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="descricao-limitada">
+                        <span>{registro.description}</span>
+                      </div>
+                    </td>
+                    <td className="col-status">
+                      {" "}
                       {podeJustificar.includes(registro.status.toLowerCase()) &&
                         !isHoje(registro.date) && (
                           <Button
-                            style={{ height: 20, margin: "5px 0" }}
+                            style={{
+                              height: 20,
+                              marginTop: "4px",
+                              padding: "2px 6px",
+                              fontSize: "0.75rem",
+                            }}
                             onClick={() => abrirJustificativaModal(registro)}
                           >
                             {registro.justified
@@ -294,8 +314,6 @@ function RegistroHoras() {
                               : "Justificar"}
                           </Button>
                         )}
-
-                      {registro.justified}
                     </td>
                   </tr>
                 ))}
@@ -345,19 +363,40 @@ function RegistroHoras() {
                   >
                     <strong>Saldo:</strong> {registro.balance}
                   </p>
-                  <p className="col-status">
-                    <strong>Status:</strong> {registro.status}
+                  <p>
+                    <strong>Descrição:</strong> {registro.status}
                   </p>
+                  {registro.justified && registro.description && (
+                    <p>
+                      <strong>Justificativa:</strong> {registro.description}
+                    </p>
+                  )}
+
+                  {podeJustificar.includes(registro.status.toLowerCase()) &&
+                    !isHoje(registro.date) && (
+                      <Button
+                        style={{
+                          height: 20,
+                          marginTop: "4px",
+                          padding: "2px 6px",
+                          fontSize: "0.75rem",
+                        }}
+                        onClick={() => abrirJustificativaModal(registro)}
+                      >
+                        {registro.justified
+                          ? "Editar justificativa"
+                          : "Justificar"}
+                      </Button>
+                    )}
                 </div>
               ))}
             </TableMobile>
 
-            <Assinatura className="assinatura">
+            <Assinatura>
               <p>
                 ______________________________________________________________
               </p>
               <p>Assinatura do Funcionário</p>
-              <p>{funcionarios.find((f) => f._id === employeeId)?.name}</p>
             </Assinatura>
           </div>
         </>
