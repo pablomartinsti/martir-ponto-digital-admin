@@ -3,8 +3,9 @@ import api from "../../../services/api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Container, Filtros, Grid, Card } from "./styles";
+import { AxiosError } from "axios";
+import ModalTrocarSenha from "../../../Components/ModalTrocaSenha";
 
-// Interfaces
 interface Funcionario {
   _id: string;
   name: string;
@@ -28,26 +29,26 @@ function ListarFuncionarios() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [cnpjSelecionado, setCnpjSelecionado] = useState("");
 
-  // Apenas leitura do usuário salvo no localStorage
+  // Modal de troca de senha
+  const [modalAberto, setModalAberto] = useState(false);
+  const [funcionarioSelecionado, setFuncionarioSelecionado] =
+    useState<Funcionario | null>(null);
+  const [novaSenha, setNovaSenha] = useState("");
+
   const [user] = useState(() => {
     const userStorage = localStorage.getItem("user");
     return userStorage ? JSON.parse(userStorage) : null;
   });
 
-  // Carrega as empresas para o select (se for admin)
   useEffect(() => {
     if (user?.role === "admin") {
       api
         .get("/companies")
-        .then((res) => {
-          console.log("Empresas retornadas:", res.data); // 👈 AQUI
-          setEmpresas(res.data);
-        })
+        .then((res) => setEmpresas(res.data))
         .catch(() => toast.error("Erro ao carregar empresas."));
     }
   }, [user]);
 
-  // Carrega os funcionários de acordo com o filtro e empresa
   const carregarFuncionarios = useCallback(async () => {
     const loadingToast = setTimeout(() => {
       toast.info("Carregando funcionários...", {
@@ -69,7 +70,6 @@ function ListarFuncionarios() {
       }
 
       const response = await api.get(`${url}?${params.toString()}`);
-
       const apenasFuncionarios = response.data.filter(
         (func: Funcionario) => func.role !== "admin"
       );
@@ -87,25 +87,21 @@ function ListarFuncionarios() {
     }
   }, [filtro, cnpjSelecionado, primeiraBusca, user]);
 
-  // Só busca funcionários se tiver empresa selecionada
   useEffect(() => {
     if (user?.role === "admin" && !cnpjSelecionado) return;
     carregarFuncionarios();
   }, [carregarFuncionarios, cnpjSelecionado, user?.role]);
 
-  // Alternar status do funcionário
   const alternarStatus = async (_id: string, isAtivo: boolean) => {
     const acao = isAtivo ? "inativar" : "ativar";
-
     const confirmado = window.confirm(
       `Tem certeza que deseja ${acao} este funcionário?`
     );
-
     if (!confirmado) return;
 
     try {
       await toast.promise(
-        api.patch(`/employees/${_id}/status`, { isActive: !isAtivo }), // ← aqui corrigido
+        api.patch(`/employees/${_id}/status`, { isActive: !isAtivo }),
         {
           pending: `${
             acao === "inativar" ? "Inativando" : "Ativando"
@@ -116,10 +112,31 @@ function ListarFuncionarios() {
           error: `Erro ao ${acao} funcionário.`,
         }
       );
-
       carregarFuncionarios();
     } catch {
       toast.error("Erro ao atualizar funcionário.");
+    }
+  };
+
+  const abrirModalTrocarSenha = (funcionario: Funcionario) => {
+    setFuncionarioSelecionado(funcionario);
+    setNovaSenha("");
+    setModalAberto(true);
+  };
+
+  const trocarSenha = async () => {
+    if (!funcionarioSelecionado || !novaSenha) return;
+
+    try {
+      await api.put(`/users/${funcionarioSelecionado._id}/reset-password`, {
+        newPassword: novaSenha,
+      });
+      toast.success("Senha redefinida com sucesso!");
+      setModalAberto(false);
+    } catch (err: unknown) {
+      const axiosError = err as AxiosError<{ error: string }>;
+      const errorMsg = axiosError.response?.data?.error;
+      toast.error(errorMsg || "Erro ao redefinir senha.");
     }
   };
 
@@ -127,7 +144,6 @@ function ListarFuncionarios() {
     <Container>
       <h1>Funcionários</h1>
 
-      {/* Select de empresa (somente para admin) */}
       {user?.role === "admin" && (
         <div style={{ marginBottom: "1rem" }}>
           <label style={{ marginRight: "0.5rem" }}>Filtrar por empresa:</label>
@@ -204,16 +220,32 @@ function ListarFuncionarios() {
               <p className={func.isActive ? "ativo" : "inativo"}>
                 <span>Status:</span> {func.isActive ? "Ativo" : "Inativo"}
               </p>
-              {/* Oculta o botão se o sub_admin estiver vendo ele mesmo */}
+
               {!(user?.role === "sub_admin" && user.id === func._id) && (
-                <button onClick={() => alternarStatus(func._id, func.isActive)}>
-                  {func.isActive ? "Inativar" : "Ativar"}
-                </button>
+                <div className="box-botao">
+                  <button
+                    onClick={() => alternarStatus(func._id, func.isActive)}
+                  >
+                    {func.isActive ? "Inativar" : "Ativar"}
+                  </button>
+
+                  <button onClick={() => abrirModalTrocarSenha(func)}>
+                    Trocar Senha
+                  </button>
+                </div>
               )}
             </Card>
           ))}
         </Grid>
       )}
+      <ModalTrocarSenha
+        isOpen={modalAberto}
+        onClose={() => setModalAberto(false)}
+        funcionario={funcionarioSelecionado}
+        novaSenha={novaSenha}
+        setNovaSenha={setNovaSenha}
+        onSubmit={trocarSenha}
+      />
 
       <ToastContainer />
     </Container>

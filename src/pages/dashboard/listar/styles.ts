@@ -64,7 +64,10 @@ export const Card = styled.div`
   .inativo {
     color: red;
   }
-
+  .box-botao {
+    display: flex;
+    gap: 1rem;
+  }
   button {
     margin-top: 1rem;
     padding: 0.4rem 1rem;
@@ -73,12 +76,12 @@ export const Card = styled.div`
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    border: 1px solid black;
     transition: all 0.3s;
 
     &:hover {
       background-color: #fff;
       color: black;
-      border: 1px solid black;
     }
   }
 `;

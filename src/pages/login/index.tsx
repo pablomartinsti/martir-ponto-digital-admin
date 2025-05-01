@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { loginSchema } from "../../validations/loginSchema";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import Logo from "../../assets/Logo-Ponto-Digital.svg";
 import Input from "../../Components/Input";
