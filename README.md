@@ -48,65 +48,18 @@ Este projeto surgiu da necessidade real de pequenas empresas que não têm recur
 - **React Toastify** – alertas e feedbacks para o usuário
 - **Axios** – requisições HTTP para a API
 
-### Outros
-
-- **date-fns** e **date-fns-tz** – manipulação de datas e fusos horários
-- **Vercel** – deploy do frontend
-
----
-
 ## 📸 Responsividade e Impressão
 
 - Design adaptado para **telas grandes e pequenas**
 - Tabelas se transformam em **cards** no celular
 - Impressão com layout próprio usando `@media print` (ideal para papel A4)
 
-### 🖼️ Telas da Aplicação
-
-Abaixo estão algumas capturas de tela demonstrando o funcionamento da aplicação em diferentes dispositivos:
-
-## 🚀 Como executar localmente
-
-1. Clone o repositório:
-
-```bash
-git clone https://github.com/seu-usuario/martir-ponto-digital-admin.git
-cd martir-ponto-digital-admin
-```
-
-2. Instale as dependências:
-
-```bash
-npm install
-```
-
-3. Inicie o servidor de desenvolvimento:
-
-```bash
-npm run dev
-```
-
-> Acesse em: `http://localhost:5173`
-
----
 
 ## 🌐 Deploy
 
 O projeto está hospedado gratuitamente na Vercel:  
-📎 [Acesse aqui](https://martir-ponto-digital-admin.vercel.app)
+📎 [Acesse aqui](https://pontodigital.martircontabil.com.br/)
 
 ---
 
-## 💼 Sobre mim
 
-Desenvolvedor fullstack em formação, com foco em backend, buscando minha primeira oportunidade na área de tecnologia. Este projeto é parte do meu portfólio.
-
-📫 **Contato**: seuemail@gmail.com  
-💼 [LinkedIn](https://linkedin.com/in/seu-usuario)  
-📁 [Portfólio completo](https://seu-portfolio.com)
-
----
-
-## 📝 Licença
-
-Este projeto está licenciado sob a licença MIT.
