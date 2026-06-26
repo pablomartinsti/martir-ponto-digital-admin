@@ -4,10 +4,10 @@ import { loginSchema } from "../../validations/loginSchema";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../hooks/useAuth";
-import api from "../../services/api";
+import { signIn } from "../../services/authService";
 import Logo from "../../assets/Logo-Ponto-Digital.svg";
-import Input from "../../Components/Input";
-import Button from "../../Components/Button";
+import Input from "../../components/Input";
+import Button from "../../components/Button";
 import { Container, ContainerItems } from "./styles";
 import { ZodError } from "zod";
 
@@ -33,14 +33,13 @@ function Login() {
       setErros({});
       const dadosValidados = loginSchema.parse({ cpf: cpfLimpo, senha });
 
-      const response = await api.post("/login", {
-        cpf: dadosValidados.cpf.replace(/\D/g, ""),
-        password: dadosValidados.senha,
-      });
+      const { token, user } = await signIn(
+        dadosValidados.cpf.replace(/\D/g, ""),
+        dadosValidados.senha
+      );
 
       toast.info("Conectando com o servidor, aguarde...");
 
-      const { token, user } = response.data;
       console.log("✅ Login bem-sucedido:", { token, user });
 
       // ⛔️ Verifica se não é admin antes de logar

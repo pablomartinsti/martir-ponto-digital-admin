@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import api from "../../../services/api";
-import Button from "../../../Components/Button";
+import { listActiveEmployees } from "../../../services/employeeService";
+import { getWorkScheduleByEmployee, saveWorkSchedule } from "../../../services/workScheduleService";
+import Button from "../../../components/Button";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -68,10 +69,8 @@ function GerenciarEscala() {
   useEffect(() => {
     async function carregarFuncionarios() {
       try {
-        const { data } = await api.get("/employees?filter=active");
-        const apenasFuncionarios = data.filter(
-          (func: { role: string }) => func.role === "employee"
-        );
+        const data = await listActiveEmployees();
+        const apenasFuncionarios = data.filter((func) => func.role === "employee");
         setFuncionarios(apenasFuncionarios);
       } catch {
         toast.error("Erro ao carregar funcionários.");
@@ -87,7 +86,7 @@ function GerenciarEscala() {
       async function buscarEscala() {
         const toastId = toast.loading("Carregando escala...");
         try {
-          const { data } = await api.get(`/work-schedules/${employeeId}`);
+          const data = await getWorkScheduleByEmployee(employeeId);
           setEscala(data.customDays);
           toast.update(toastId, {
             render: "Escala carregada com sucesso!",
@@ -161,7 +160,7 @@ function GerenciarEscala() {
     };
 
     try {
-      await toast.promise(api.post("/work-schedules", payload), {
+      await toast.promise(saveWorkSchedule(payload), {
         pending: "Salvando escala...",
         success: "Escala salva com sucesso!",
         error: "Erro ao salvar escala.",

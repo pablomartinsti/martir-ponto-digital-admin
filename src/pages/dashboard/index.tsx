@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "../../Components/Menu";
+import Sidebar from "../../components/Menu";
 import { Container, ContainerItems } from "./styles";
 
 function Dashboard() {

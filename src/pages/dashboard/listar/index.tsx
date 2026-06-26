@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import api from "../../../services/api";
+import { listCompanies } from "../../../services/companyService";
+import { listEmployees, resetEmployeePassword, updateEmployeeStatus } from "../../../services/employeeService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Container, Filtros, Grid, Card } from "./styles";
 import { AxiosError } from "axios";
-import ModalTrocarSenha from "../../../Components/ModalTrocaSenha";
+import ModalTrocarSenha from "../../../components/ModalTrocaSenha";
 
 interface Funcionario {
   _id: string;
@@ -42,9 +43,8 @@ function ListarFuncionarios() {
 
   useEffect(() => {
     if (user?.role === "admin") {
-      api
-        .get("/companies")
-        .then((res) => setEmpresas(res.data))
+      listCompanies()
+        .then(setEmpresas)
         .catch(() => toast.error("Erro ao carregar empresas."));
     }
   }, [user]);
@@ -59,20 +59,17 @@ function ListarFuncionarios() {
     }, 500);
 
     try {
-      const url = "/employees";
-      const params = new URLSearchParams();
+      const data = await listEmployees({
+        filter:
+          filtro === "ativos"
+            ? "active"
+            : filtro === "inativos"
+              ? "inactive"
+              : undefined,
+        cnpj: user?.role === "admin" && cnpjSelecionado ? cnpjSelecionado : undefined,
+      });
 
-      if (filtro === "ativos") params.append("filter", "active");
-      else if (filtro === "inativos") params.append("filter", "inactive");
-
-      if (user?.role === "admin" && cnpjSelecionado) {
-        params.append("cnpj", cnpjSelecionado);
-      }
-
-      const response = await api.get(`${url}?${params.toString()}`);
-      const apenasFuncionarios = response.data.filter(
-        (func: Funcionario) => func.role !== "admin"
-      );
+      const apenasFuncionarios = data.filter((func) => func.role !== "admin");
 
       setFuncionarios(apenasFuncionarios);
 
@@ -101,7 +98,7 @@ function ListarFuncionarios() {
 
     try {
       await toast.promise(
-        api.patch(`/employees/${_id}/status`, { isActive: !isAtivo }),
+        updateEmployeeStatus(_id, !isAtivo),
         {
           pending: `${
             acao === "inativar" ? "Inativando" : "Ativando"
@@ -128,9 +125,7 @@ function ListarFuncionarios() {
     if (!funcionarioSelecionado || !novaSenha) return;
 
     try {
-      await api.put(`/users/${funcionarioSelecionado._id}/reset-password`, {
-        newPassword: novaSenha,
-      });
+      await resetEmployeePassword(funcionarioSelecionado._id, novaSenha);
       toast.success("Senha redefinida com sucesso!");
       setModalAberto(false);
     } catch (err: unknown) {

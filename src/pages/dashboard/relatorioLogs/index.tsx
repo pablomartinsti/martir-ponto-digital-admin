@@ -1,30 +1,13 @@
 import { useEffect, useState } from "react";
-import api from "../../../services/api";
+import { listCompanies } from "../../../services/companyService";
+import { deleteEventLogs, listEventLogs } from "../../../services/eventLogService";
 import { toast } from "react-toastify";
-import { AxiosError } from "axios";
 
-interface Log {
-  _id: string;
-  userName: string;
-  companyName: string;
-  companyId: string;
-  route: string;
-  method: string;
-  action: string;
-  status: string;
-  message: string;
-  createdAt: string;
-  device?: string;
-}
-
-interface Company {
-  _id: string;
-  name: string;
-  cnpj: string;
-}
+import { Company } from "../../../types/company";
+import { EventLog } from "../../../types/eventLog";
 
 export default function LogsPage() {
-  const [logs, setLogs] = useState<Log[]>([]);
+  const [logs, setLogs] = useState<EventLog[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -36,8 +19,8 @@ export default function LogsPage() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        const res = await api.get("/companies");
-        setCompanies(res.data);
+        const data = await listCompanies();
+        setCompanies(data);
       } catch (err) {
         console.error("Erro ao buscar empresas:", err);
       }
@@ -57,8 +40,8 @@ export default function LogsPage() {
           params.endDate = selectedDate;
         }
 
-        const res = await api.get("/event-logs", { params });
-        setLogs(res.data);
+        const data = await listEventLogs(params);
+        setLogs(data);
       } catch (err) {
         console.error("Erro ao buscar logs:", err);
       }
@@ -79,23 +62,15 @@ export default function LogsPage() {
     if (!confirmed) return;
 
     try {
-      const response = await api.delete("/delete-event", {
-        params: {
-          month: deleteMonth,
-          year: deleteYear,
-        },
-      });
+      const response = await deleteEventLogs(deleteMonth, deleteYear);
 
-      toast.success(response.data.message || "Logs excluídos com sucesso.");
+      toast.success(response.message || "Logs excluídos com sucesso.");
 
       // Atualizar a listagem depois de excluir
       setLogs([]);
     } catch (error: unknown) {
-      const err = error as AxiosError<{ error: string }>;
-
-      console.error(err);
-
-      toast.error(err.response?.data?.error || "Erro ao excluir logs.");
+      console.error(error);
+      toast.error("Erro ao excluir logs.");
     }
   }
 

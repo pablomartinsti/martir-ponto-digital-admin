@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import Input from "../../../Components/Input";
-import Button from "../../../Components/Button";
+import Input from "../../../components/Input";
+import Button from "../../../components/Button";
 import { Container, Title, Form } from "./styles";
 import { z, ZodError } from "zod";
-import api from "../../../services/api";
+import { createSubAdminAndCompany } from "../../../services/companyService";
 
 // Esquema de validação para admin (empresa)
 const adminSchema = z.object({
@@ -44,7 +44,7 @@ function CriarEmpresa() {
       });
 
       await toast.promise(
-        api.post("/sub-admin", {
+        createSubAdminAndCompany({
           name: dados.name,
           cpf: dados.cpf.replace(/\D/g, ""),
           password: dados.password,

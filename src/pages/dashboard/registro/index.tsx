@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import api from "../../../services/api";
+import { listActiveEmployees } from "../../../services/employeeService";
+import { getTimeRecords } from "../../../services/timeRecordService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-datepicker/dist/react-datepicker.css";
@@ -18,8 +19,8 @@ import {
   TableMobile,
   FiltroWrapper,
 } from "./styles";
-import Button from "../../../Components/Button";
-import ModalJustificativa from "../../../Components/ModalAbsence/";
+import Button from "../../../components/Button";
+import ModalJustificativa from "../../../components/ModalAbsence/";
 
 const nomesMeses = [
   "Janeiro",
@@ -75,8 +76,8 @@ function RegistroHoras() {
   useEffect(() => {
     async function carregarFuncionarios() {
       try {
-        const { data } = await api.get("/employees?filter=active");
-        setFuncionarios(data.filter((f: Funcionario) => f.role === "employee"));
+        const data = await listActiveEmployees();
+        setFuncionarios(data.filter((f) => f.role === "employee"));
       } catch {
         toast.error("Erro ao carregar funcionários");
       }
@@ -106,9 +107,12 @@ function RegistroHoras() {
     const fim = new Date(ano, mes, 0).toISOString().split("T")[0];
 
     try {
-      const { data } = await api.get(
-        `/time-records?period=month&startDate=${inicio}&endDate=${fim}&employeeId=${employeeId}`
-      );
+      const data = await getTimeRecords({
+        period: "month",
+        startDate: inicio,
+        endDate: fim,
+        employeeId,
+      });
 
       setRegistros(data.records || []);
       setResumo({

@@ -63,3 +63,42 @@ O projeto está hospedado gratuitamente na Vercel:
 ---
 
 
+
+## Smoke Test do Frontend
+
+O projeto possui um smoke test simples para validar rapidamente se o frontend está respondendo e se a integração básica com a API está acessível.
+
+Com a API rodando e o frontend iniciado, execute:
+
+```bash
+npm run test:smoke
+```
+
+Por padrão, o teste usa:
+
+```txt
+Frontend: http://localhost:5173
+API: http://localhost:3000
+```
+
+Para testar login e rotas protegidas, informe CPF e senha de um usuário válido:
+
+```powershell
+$env:SMOKE_CPF="00000000000"
+$env:SMOKE_PASSWORD="senha-do-usuario"
+npm run test:smoke
+```
+
+Se a API ou o frontend estiverem em outra URL:
+
+```powershell
+$env:SMOKE_FRONT_URL="http://localhost:5173"
+$env:SMOKE_API_URL="http://localhost:3000"
+npm run test:smoke
+```
+
+Resultado esperado:
+
+```txt
+Smoke test do frontend finalizado com sucesso.
+```
