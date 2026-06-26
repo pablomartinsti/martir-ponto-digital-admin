@@ -1,5 +1,6 @@
 import { useState } from "react";
-import api from "../../services/api";
+import { createAbsence } from "../../services/absenceService";
+import { AbsenceType } from "../../types/absence";
 import { toast } from "react-toastify";
 import { Actions, ModalBox, Overlay, Select, Textarea } from "./styles";
 
@@ -28,10 +29,10 @@ export default function ModalJustificativa({
     }
 
     try {
-      await api.post("/absences", {
+      await createAbsence({
         employeeId,
         date,
-        type: motivo,
+        type: motivo as AbsenceType,
         description: descricao,
       });
       toast.success("Justificativa registrada com sucesso!");
